@@ -1,0 +1,1728 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Forex Invest</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+	<style>
+		body {
+			font-family: 'Noto Sans KR', sans-serif;
+			background-color: #f4f6f9;
+			color: #333;
+			-webkit-text-size-adjust: none;
+		}
+
+		.nav-tabs {
+			border-bottom: 2px solid #dee2e6;
+			display: flex;
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			overflow-y: hidden;
+			-webkit-overflow-scrolling: touch;
+			-ms-overflow-style: none;
+			scrollbar-width: none;
+		}
+
+		.nav-tabs .nav-item {
+			flex: 1;
+			min-width: auto;
+			text-align: center;
+		}
+
+		.nav-tabs .nav-link {
+			color: #555;
+			font-weight: 500;
+			padding: 12px 4px;
+			border: none;
+			border-bottom: 3px solid transparent;
+			font-size: 0.95rem;
+			white-space: nowrap;
+			width: 100%;
+			display: block;
+		}
+
+		.nav-tabs .nav-link.active {
+			font-weight: 700;
+			color: #0d6efd;
+			border-bottom: 3px solid #0d6efd;
+			background: rgba(13, 110, 253, 0.06) !important;
+		}
+
+		.nav-tabs::-webkit-scrollbar {
+			display: none !important;
+			width: 0 !important;
+			height: 0 !important;
+			background: transparent !important;
+		}
+
+		.card-custom {
+			border: none;
+			border-radius: 12px;
+			box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+			margin-bottom: 15px;
+		}
+
+		.summary-receipt-card {
+			border-radius: 16px;
+			box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+			border: 1px solid #eef2f5;
+			width: 100%;
+			margin-bottom: 25px;
+			background: #fff;
+		}
+
+		.receipt-group-box {
+			background-color: #f8f9fa;
+			border-radius: 12px;
+			padding: 15px;
+			border: 1px solid #f1f3f5;
+			height: 100%;
+		}
+
+		.receipt-group-box.accent-box {
+			background-color: #fcfdfe;
+			border: 1px solid #e8f0fe;
+		}
+
+		.summary-receipt-card .text-muted {
+			font-size: 0.88rem;
+			letter-spacing: -0.02em;
+			font-weight: 500;
+		}
+
+		.summary-receipt-card .fs-title {
+			font-size: 1.0rem;
+			letter-spacing: -0.03em;
+			font-weight: 700;
+			color: #212529;
+		}
+
+		.summary-receipt-card .fs-asset {
+			font-size: 1.15rem !important;
+			letter-spacing: -0.02em;
+			font-weight: 700;
+		}
+
+		.summary-receipt-card .fs-val {
+			font-size: 0.95rem;
+			letter-spacing: -0.02em;
+			font-weight: 700;
+		}
+
+		.btn-receipt-toggle {
+			background: #f1f3f5;
+			color: #495057;
+			border: none;
+			width: 100%;
+			padding: 8px;
+			border-radius: 10px;
+			font-size: 0.85rem;
+			font-weight: bold;
+			margin-top: 10px;
+			display: none;
+		}
+
+		.btn-receipt-toggle:hover {
+			background: #e9ecef;
+		}
+
+		.card-realized-profit {
+			background: white;
+			border-radius: 14px;
+			box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+		}
+
+		.card-realized-profit.all {
+			border-left: 5px solid #198754;
+		}
+
+		.card-realized-profit.usd {
+			border-left: 5px solid #0d6efd;
+		}
+
+		.card-realized-profit.jpy {
+			border-left: 5px solid #dc3545;
+		}
+
+		.profit-title-text {
+			font-size: 0.85rem;
+			font-weight: 700;
+			letter-spacing: -0.02em;
+			display: flex;
+			align-items: center;
+		}
+
+		.profit-value-text {
+			font-size: calc(1.3rem + 0.3vw);
+			font-weight: 700;
+			line-height: 1.2;
+			margin-top: 6px;
+		}
+
+		.sell-highlight {
+			background-color: #fdf2f2 !important;
+			border-left: 5px solid #dc3545;
+		}
+
+		.btn-modern {
+			padding: 6px 12px;
+			font-weight: 500;
+			border-radius: 8px;
+			border: none;
+			display: inline-flex;
+			align-items: center;
+			transition: all 0.2s ease;
+			font-size: 0.9rem;
+		}
+
+		.btn-modern i {
+			font-size: 0.85rem;
+			color: #fff !important;
+		}
+
+		.profit-up {
+			color: #dc3545 !important;
+			font-weight: bold;
+		}
+
+		.profit-down {
+			color: #0d6efd !important;
+			font-weight: bold;
+		}
+
+		.stock-up {
+			color: #dc3545 !important;
+			font-weight: bold;
+		}
+
+		.stock-down {
+			color: #0d6efd !important;
+			font-weight: bold;
+		}
+
+		.stock-stable {
+			color: #6c757d !important;
+		}
+
+		.badge-position-hold {
+			height: 28px;
+			background-color: #eef9f2;
+			color: #198754;
+			border: 1px solid #cceedf;
+			padding: 0 12px;
+			font-weight: 700;
+			border-radius: 30px;
+			font-size: 0.8rem;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 4px;
+			box-sizing: border-box;
+		}
+
+		.badge-position-sell {
+			height: 28px;
+			background: linear-gradient(135deg, #ff4d4d, #dc3545);
+			color: #fff;
+			box-shadow: 0 3px 8px rgba(220, 53, 69, 0.2);
+			padding: 0 12px;
+			font-weight: 700;
+			border-radius: 30px;
+			font-size: 0.8rem;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 4px;
+			letter-spacing: -0.01em;
+			box-sizing: border-box;
+		}
+
+		.btn-action-sell {
+			height: 28px;
+			padding: 0 10px;
+			font-weight: 700;
+			font-size: 0.8rem;
+			border-radius: 30px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			vertical-align: middle;
+		}
+
+		.btn-action-icon {
+			height: 28px;
+			width: 28px;
+			padding: 0;
+			font-size: 0.82rem;
+			border-radius: 8px;
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			box-sizing: border-box;
+			vertical-align: middle;
+		}
+
+		.modal-dialog {
+			margin: 1.75rem auto;
+			max-width: 500px;
+			padding: 0 10px;
+		}
+
+		.form-control-lg {
+			font-size: 1.05rem;
+			padding: 10px;
+		}
+
+		.loading-overlay {
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.4);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			z-index: 9999;
+			font-size: 1.1rem;
+			color: #fff;
+		}
+
+		/* 🔒 비밀번호 잠금 화면 전용 스타일 */
+		.auth-container {
+			min-height: 80vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.auth-card {
+			background: #fff;
+			border-radius: 16px;
+			padding: 35px 25px;
+			box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+			max-width: 380px;
+			width: 100%;
+			text-align: center;
+		}
+
+		.mobile-history-list {
+			display: none;
+		}
+
+		@media (max-width: 1199px) {
+
+			.row .card-custom,
+			.row .card-realized-profit {
+				padding: 10px 8px !important;
+			}
+
+			.profit-title-text {
+				font-size: 0.72rem !important;
+				letter-spacing: -0.05em;
+				white-space: nowrap !important;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				display: block;
+			}
+
+			.profit-value-text {
+				font-size: 0.88rem !important;
+				letter-spacing: -0.04em;
+				line-height: 1.25 !important;
+				word-break: keep-all;
+			}
+
+			.desktop-table-container {
+				display: none;
+			}
+
+			.mobile-history-list {
+				display: block;
+			}
+
+			.mobile-record-card {
+				background: #fff;
+				border-radius: 12px;
+				padding: 16px;
+				margin-bottom: 14px;
+				box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+				border: 1px solid #eef2f5;
+			}
+
+			.mobile-record-card.profit-active {
+				background-color: #fdf2f2;
+			}
+
+			.nav-tabs .nav-link {
+				font-size: 0.84rem;
+				padding: 10px 2px;
+				letter-spacing: -0.03em;
+			}
+
+			.mobile-history-list .btn-action-sell {
+				height: 30px;
+				font-size: 0.82rem;
+				padding: 0 12px;
+				border-radius: 6px;
+			}
+
+			.mobile-history-list .btn-action-icon {
+				height: 30px;
+				width: 30px;
+				font-size: 0.85rem;
+			}
+
+			.btn-receipt-toggle {
+				display: block;
+			}
+
+			.mobile-collapse {
+				display: block !important;
+				max-height: 0;
+				overflow: hidden;
+				transition: max-height 0.4s ease-out;
+			}
+
+			.mobile-collapse.show {
+				max-height: 500px;
+			}
+
+			.summary-receipt-card {
+				max-width: 100%;
+				margin: 0 0 20px 0;
+			}
+
+			.receipt-group-box {
+				margin-bottom: 10px;
+			}
+
+			.receipt-group-box:last-child {
+				margin-bottom: 0;
+			}
+
+			.summary-receipt-card .fs-title {
+				font-size: 0.95rem;
+			}
+
+			.summary-receipt-card .fs-asset {
+				font-size: 1.1rem !important;
+			}
+
+			.summary-receipt-card .fs-val {
+				font-size: 0.9rem;
+			}
+		}
+	</style>
+</head>
+
+<body>
+
+	<div id="loading" class="loading-overlay" style="display:none;">
+		<div class="text-center">
+			<div class="spinner-border text-light mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
+			<div id="loading-text" class="fw-bold">클라우드 데이터 동기화 중...</div>
+		</div>
+	</div>
+
+	<!-- 🔒 비밀번호 잠금 화면 -->
+	<div id="auth-screen" class="auth-container">
+		<div class="auth-card">
+			<div class="mb-3 fs-1 text-primary"><i class="fas fa-shield-alt"></i></div>
+			<h4 class="fw-bold mb-2">외화 투자 대시보드</h4>
+			<p class="text-muted small mb-4">접속 비밀번호를 입력해 주세요.</p>
+			<div class="mb-3">
+				<input type="password" id="site-password" class="form-control form-control-lg text-center fw-bold"
+					placeholder="비밀번호 입력" style="letter-spacing: 0.15em;"
+					onkeyup="if(window.event.keyCode==13){loginWithPassword()}">
+			</div>
+			<button class="btn btn-primary w-100 py-2 fw-bold rounded-3" onclick="loginWithPassword()">접속하기</button>
+		</div>
+	</div>
+
+	<!-- 📊 메인 본문 화면 (인증 완료 시 노출) -->
+	<div class="container py-2 py-md-4" id="main-content" style="display: none;">
+		<header class="pb-2 mb-3 border-bottom d-flex justify-content-between align-items-center">
+			<span class="fs-6 fs-md-4 fw-bold text-dark">📊 외화 투자 기록</span>
+			<div class="d-flex align-items-center gap-2">
+				<button class="btn btn-outline-secondary btn-sm rounded-3" onclick="refreshCurrentRates()"
+					title="환율 새로고침"><i class="fas fa-sync-alt"></i></button>
+				<button class="btn btn-outline-danger btn-sm rounded-3" onclick="logoutSession()" title="잠그기(로그아웃)"><i
+						class="fas fa-lock"></i></button>
+			</div>
+		</header>
+
+		<ul class="nav nav-tabs mb-4" id="investTab" role="tablist">
+			<li class="nav-item"><button class="nav-link active" id="usd-tab" data-bs-toggle="tab"
+					data-bs-target="#usd-page" type="button">💵 달러(USD)</button></li>
+			<li class="nav-item"><button class="nav-link" id="jpy-tab" data-bs-toggle="tab" data-bs-target="#jpy-page"
+					type="button">💴 엔화(JPY)</button></li>
+			<li class="nav-item"><button class="nav-link" id="sold-tab" data-bs-toggle="tab" data-bs-target="#sold-page"
+					type="button">💰 실현 손익</button></li>
+			<li class="nav-item"><button class="nav-link" id="setting-tab" data-bs-toggle="tab"
+					data-bs-target="#setting-page" type="button">⚙️ 설정</button></li>
+		</ul>
+
+		<div class="tab-content" id="investTabContent">
+
+			<!-- 💵 달러(USD) 접이식 요약 카드 -->
+			<div class="tab-pane fade show active" id="usd-page">
+				<div class="card bg-white summary-receipt-card p-3">
+					<div class="d-flex justify-content-between align-items-center d-xl-none p-2 mb-1">
+						<div>
+							<span class="text-muted small d-block">현재 평가금액</span>
+							<span class="fw-bold fs-5 text-dark" id="usd-current-valuation-mobile">0원</span>
+						</div>
+						<div class="text-end">
+							<span class="text-muted small d-block">예상 수익률</span>
+							<span class="fw-bold fs-5" id="usd-expected-rate-mobile">0.00%</span>
+						</div>
+					</div>
+
+					<div class="row g-3 mobile-collapse" id="usd-receipt-details">
+						<div class="col-12 col-xl-4">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title"><i class="fas fa-wallet me-2 text-primary"></i>보유자산</span>
+									<span class="fs-asset text-dark" id="usd-total-asset">🇺🇸 USD 0</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">총 매수 외화금액</span>
+									<span class="fw-bold fs-val text-secondary" id="usd-sum-foreign">🇺🇸 USD 0</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-xl-4">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title">💵 매수 정보</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">매수 원금 <span style="font-size:0.75rem;">(환산금액)</span></span>
+									<span class="fw-bold fs-val text-dark" id="usd-sum-krw">0원</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">평균 적용 환율</span>
+									<span class="fs-val text-primary" id="usd-avg-buy">0.00</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-xl-4 d-none d-xl-block">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title text-dark"><i
+											class="fas fa-chart-line me-2 text-danger"></i>지금 팔면</span>
+									<span class="fw-bold fs-asset text-dark" id="usd-current-valuation">0원</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">현재 예상 환율</span>
+									<span class="fs-val text-secondary fw-bold" id="usd-current-rate">0.00</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">예상 손익 (수익률)</span>
+									<span class="fs-val"><span id="usd-expected-profit">0원</span> (<span
+											id="usd-expected-rate">0.00%</span>)</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 d-xl-none">
+							<div class="receipt-group-box accent-box">
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">현재 예상 환율</span>
+									<span class="fs-val text-secondary fw-bold"
+										id="usd-current-rate-mobile-sub">0.00</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">예상 수익금</span>
+									<span class="fs-val fw-bold" id="usd-expected-profit-mobile">0원</span>
+								</div>
+							</div>
+						</div>
+
+					</div>
+					<button class="btn-receipt-toggle" type="button" onclick="toggleReceipt('usd', this)">
+						자세히 보기 <i class="fas fa-chevron-down ms-1"></i>
+					</button>
+				</div>
+
+				<div class="card card-custom p-3 p-md-4 bg-white">
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<h6 class="fw-bold m-0 fs-5 text-dark"><i class="fas fa-list-ul me-2 text-primary"></i>달러 투자 내역
+						</h6>
+						<button class="btn btn-primary btn-modern btn-sm" onclick="openAddModal('usd')"><i
+								class="fas fa-plus me-1"></i>기록 추가</button>
+					</div>
+					<div class="table-responsive desktop-table-container">
+						<table class="table table-hover align-middle text-nowrap m-0" style="font-size:0.9rem;">
+							<thead class="table-light">
+								<tr>
+									<th>No</th>
+									<th>계좌</th>
+									<th>매수일자</th>
+									<th>매수환율(₩)</th>
+									<th>매수수량</th>
+									<th>매수금(₩)</th>
+									<th>평가금(₩)</th>
+									<th>수익금(₩)</th>
+									<th>수익률(%)</th>
+									<th class="text-center">투자포지션</th>
+									<th class="text-center">관리</th>
+								</tr>
+							</thead>
+							<tbody id="usd-table-body"></tbody>
+						</table>
+					</div>
+					<div id="usd-mobile-list" class="mobile-history-list"></div>
+				</div>
+			</div>
+
+			<!-- 💴 엔화(JPY) 접이식 요약 카드 -->
+			<div class="tab-pane fade" id="jpy-page">
+				<div class="card bg-white summary-receipt-card p-3">
+					<div class="d-flex justify-content-between align-items-center d-xl-none p-2 mb-1">
+						<div>
+							<span class="text-muted small d-block">현재 평가금액</span>
+							<span class="fw-bold fs-5 text-dark" id="jpy-current-valuation-mobile">0원</span>
+						</div>
+						<div class="text-end">
+							<span class="text-muted small d-block">예상 수익률</span>
+							<span class="fw-bold fs-5" id="jpy-expected-rate-mobile">0.00%</span>
+						</div>
+					</div>
+
+					<div class="row g-3 mobile-collapse" id="jpy-receipt-details">
+						<div class="col-12 col-xl-4">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title"><i class="fas fa-wallet me-2 text-primary"></i>보유자산</span>
+									<span class="fs-asset text-dark" id="jpy-total-asset">🇯🇵 JPY 0</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">총 매수 외화금액</span>
+									<span class="fw-bold fs-val text-secondary" id="jpy-sum-foreign">🇯🇵 JPY 0</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-xl-4">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title">💴 매수 정보</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">매수 원금 <span style="font-size:0.75rem;">(환산금액)</span></span>
+									<span class="fw-bold fs-val text-dark" id="jpy-sum-krw">0원</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">평균 적용 환율</span>
+									<span class="fs-val text-primary" id="jpy-avg-buy">0.00</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 col-xl-4 d-none d-xl-block">
+							<div class="receipt-group-box">
+								<div
+									class="d-flex justify-content-between align-items-center pb-2 border-bottom border-2 border-white mb-2">
+									<span class="fs-title text-dark"><i
+											class="fas fa-chart-line me-2 text-danger"></i>지금 팔면</span>
+									<span class="fw-bold fs-asset text-dark" id="jpy-current-valuation">0원</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">현재 예상 환율</span>
+									<span class="fs-val text-secondary fw-bold" id="jpy-current-rate">0.00</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">예상 손익 (수익률)</span>
+									<span class="fs-val"><span id="jpy-expected-profit">0원</span> (<span
+											id="jpy-expected-rate">0.00%</span>)</span>
+								</div>
+							</div>
+						</div>
+
+						<div class="col-12 d-xl-none">
+							<div class="receipt-group-box accent-box">
+								<div class="d-flex justify-content-between align-items-center mb-2">
+									<span class="text-muted">현재 예상 환율</span>
+									<span class="fs-val text-secondary fw-bold"
+										id="jpy-current-rate-mobile-sub">0.00</span>
+								</div>
+								<div class="d-flex justify-content-between align-items-center">
+									<span class="text-muted">예상 수익금</span>
+									<span class="fs-val fw-bold" id="jpy-expected-profit-mobile">0원</span>
+								</div>
+							</div>
+						</div>
+
+					</div>
+					<button class="btn-receipt-toggle" type="button" onclick="toggleReceipt('jpy', this)">
+						자세히 보기 <i class="fas fa-chevron-down ms-1"></i>
+					</button>
+				</div>
+
+				<div class="card card-custom p-3 p-md-4 bg-white">
+					<div class="d-flex justify-content-between align-items-center mb-3">
+						<h6 class="fw-bold m-0 fs-5 text-dark"><i class="fas fa-list-ul me-2 text-danger"></i>엔화 투자 내역
+						</h6>
+						<button class="btn btn-danger btn-modern btn-sm" onclick="openAddModal('jpy')"><i
+								class="fas fa-plus me-1"></i>기록 추가</button>
+					</div>
+					<div class="table-responsive desktop-table-container">
+						<table class="table table-hover align-middle text-nowrap m-0" style="font-size:0.9rem;">
+							<thead class="table-light">
+								<tr>
+									<th>No</th>
+									<th>계좌</th>
+									<th>매수일자</th>
+									<th>매수환율(₩)</th>
+									<th>매수수량</th>
+									<th>매수금(₩)</th>
+									<th>평가금(₩)</th>
+									<th>수익금(₩)</th>
+									<th>수익률(%)</th>
+									<th class="text-center">투자포지션</th>
+									<th class="text-center">관리</th>
+								</tr>
+							</thead>
+							<tbody id="jpy-table-body"></tbody>
+						</table>
+					</div>
+					<div id="jpy-mobile-list" class="mobile-history-list"></div>
+				</div>
+			</div>
+
+			<!-- 💰 실현 손익 페이지 -->
+			<div class="tab-pane fade" id="sold-page">
+				<div class="row g-2 mb-3">
+					<div class="col-12 col-md-4">
+						<div class="card-custom p-3 card-realized-profit all"><span
+								class="text-success profit-title-text"><i class="fas fa-coins me-1"></i>전체 실현 손익</span>
+							<div class="profit-value-text text-success" id="total-accumulated-profit">0원</div>
+						</div>
+					</div>
+					<div class="col-6 col-md-4">
+						<div class="card-custom p-3 card-realized-profit usd"><span
+								class="text-primary profit-title-text"><i class="fas fa-dollar-sign me-1"></i>달러 실현
+								손익</span>
+							<div class="profit-value-text text-primary" id="usd-accumulated-profit">0원</div>
+						</div>
+					</div>
+					<div class="col-6 col-md-4">
+						<div class="card-custom p-3 card-realized-profit jpy"><span
+								class="text-danger profit-title-text"><i class="fas fa-yen-sign me-1"></i>엔화 실현
+								손익</span>
+							<div class="profit-value-text text-danger" id="jpy-accumulated-profit">0원</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="card card-custom p-2 p-md-4 bg-white">
+					<div
+						class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border-bottom pb-3">
+						<h6 class="fw-bold m-0 fs-6 text-secondary"><i class="fas fa-history me-1"></i>실현 손익 이력</h6>
+						<div class="d-flex flex-wrap align-items-center gap-2">
+							<div class="btn-group btn-group-sm" role="group">
+								<input type="radio" class="btn-check" name="soldFilter" id="filter-all" checked
+									onchange="changeSoldFilter('all')">
+								<label class="btn btn-outline-secondary px-3" for="filter-all">전체보기</label>
+								<input type="radio" class="btn-check" name="soldFilter" id="filter-usd"
+									onchange="changeSoldFilter('달러')">
+								<label class="btn btn-outline-primary px-3" for="filter-usd">💵 달러</label>
+								<input type="radio" class="btn-check" name="soldFilter" id="filter-jpy"
+									onchange="changeSoldFilter('엔화')">
+								<label class="btn btn-outline-danger px-3" for="filter-jpy">💴 엔화</label>
+							</div>
+							<div class="d-flex align-items-center gap-1">
+								<select class="form-select form-select-sm" id="soldPageSize" style="width: 105px;"
+									onchange="changeSoldPageSize()">
+									<option value="10">10개</option>
+									<option value="20">20개</option>
+									<option value="30">30개</option>
+									<option value="50">50개</option>
+									<option value="100">100개</option>
+								</select>
+							</div>
+						</div>
+					</div>
+
+					<div class="table-responsive desktop-table-container">
+						<table class="table table-hover align-middle text-nowrap m-0" style="font-size:0.85rem;">
+							<thead class="table-light">
+								<tr>
+									<th>No</th>
+									<th>계좌</th>
+									<th>구분</th>
+									<th>매수일자</th>
+									<th>매수환율(₩)</th>
+									<th>매수수량</th>
+									<th>매수금(₩)</th>
+									<th>매도일자</th>
+									<th>매도환율(₩)</th>
+									<th>정산금액(₩)</th>
+									<th>확정손익(₩)</th>
+									<th class="text-center">관리</th>
+								</tr>
+							</thead>
+							<tbody id="sold-table-body"></tbody>
+						</table>
+					</div>
+					<div id="sold-mobile-list" class="mobile-history-list"></div>
+					<div class="d-flex justify-content-center mt-3">
+						<nav id="sold-pagination-nav"></nav>
+					</div>
+				</div>
+			</div>
+
+			<!-- ⚙️ 설정 페이지 -->
+			<div class="tab-pane fade" id="setting-page">
+				<div class="card card-custom p-3 bg-white" style="max-width: 550px; margin: 0 auto;">
+					<h6 class="fw-bold mb-3"><i class="fas fa-sliders-h me-1"></i>투자 운영 기준치 설정</h6>
+					<form id="settingForm">
+						<div class="mb-3">
+							<label class="form-label fw-bold text-primary small">💵 달러(USD)</label>
+							<div class="row g-2">
+								<div class="col-6"><label class="small text-muted">최초 매수 기준가</label><input type="number"
+										class="form-control" id="input-usd-base" step="0.01" required></div>
+								<div class="col-6"><label class="small text-muted">분할 단위 갭</label><input type="number"
+										class="form-control" id="input-usd-gap" step="0.01" required></div>
+							</div>
+						</div>
+						<div class="mb-3">
+							<label class="form-label fw-bold text-danger small">💴 엔화(JPY)</label>
+							<div class="row g-3">
+								<div class="col-6"><label class="small text-muted">최초 매수 기준가</label><input type="number"
+										class="form-control" id="input-jpy-base" step="0.01" required></div>
+								<div class="col-6"><label class="small text-muted">분할 단위 갭</label><input type="number"
+										class="form-control" id="input-jpy-gap" step="0.01" required></div>
+							</div>
+						</div>
+						<div class="mb-3 border-top pt-3 mt-2">
+							<label class="form-label fw-bold text-success small">🏦 거래 계좌 목록</label>
+							<div class="text-muted small mb-2" style="font-size:0.75rem;">사용하는 증권사/은행을 쉼표(,)로 구분해서
+								입력하세요.</div>
+							<input type="text" class="form-control" id="input-finance-list"
+								placeholder="예: 하나은행,토스뱅크,삼성증권" required>
+						</div>
+						<button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3">설정값 클라우드 저장</button>
+					</form>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<!-- 투자 기록 모달 -->
+	<div class="modal fade" id="recordModal" tabindex="-1" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered">
+			<div class="modal-content rounded-3 border-0 shadow-lg">
+				<div class="modal-header border-bottom-0 pb-1">
+					<h6 class="modal-title fw-bold" id="modalTitle">투자 기록 관리</h6>
+					<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+				</div>
+				<form id="recordForm">
+					<input type="hidden" id="form-type">
+					<input type="hidden" id="form-docid">
+					<div class="modal-body py-2">
+						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1">🏦 거래 계좌</label>
+							<select class="form-select form-control-lg bg-light fw-bold" id="form-finance"
+								style="cursor: pointer;" required></select>
+						</div>
+						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1">매수 일자</label>
+							<input type="text" class="form-control form-control-lg flatpickr bg-white" id="form-date"
+								placeholder="날짜 및 시간 선택" style="cursor: pointer;" step="1" required>
+						</div>
+						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1"
+								id="label-price-unit">매수환율(₩)</label>
+							<input type="number" class="form-control form-control-lg" id="form-price" step="0.01"
+								oninput="calculateTotalBuy()" required>
+						</div>
+						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1" id="label-foreign">매수수량</label>
+							<input type="number" class="form-control form-control-lg" id="form-amount" step="0.01"
+								oninput="calculateTotalBuy()" required>
+						</div>
+						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1">매수금(₩)</label>
+							<input type="number" class="form-control form-control-lg bg-light fw-bold text-primary"
+								id="form-totalbuy" step="1" required>
+						</div>
+					</div>
+					<div class="modal-footer border-top-0 pt-1">
+						<button type="button" class="btn btn-secondary text-white border-0 px-3 btn-sm"
+							data-bs-dismiss="modal">닫기</button>
+						<button type="submit" id="submitBtn" class="btn btn-primary px-4 btn-sm">확인 저장</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+	<!-- ======================== FIREBASE SDK 연동 ======================== -->
+	<script type="module">
+		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+		import {
+			getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDoc, setDoc, query, orderBy, enableIndexedDbPersistence
+		} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+		import {
+			getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+		} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+		const firebaseConfig = {
+			apiKey: "AIzaSyDlWT7cgcEuWB_kPmWuAITf6fUzeQwfYCU",
+			authDomain: "my-forex-invest.firebaseapp.com",
+			projectId: "my-forex-invest",
+			storageBucket: "my-forex-invest.firebasestorage.app",
+			messagingSenderId: "744299180454",
+			appId: "1:744299180454:web:33dc12d8db0ccf75c3df67"
+		};
+
+		const app = initializeApp(firebaseConfig);
+		const db = getFirestore(app);
+		const auth = getAuth(app);
+
+		try {
+			enableIndexedDbPersistence(db);
+		} catch (err) {
+			console.warn("오프라인 지속성 경고:", err.code);
+		}
+
+		// 1단계에서 생성한 가상 이메일 계정 (실제 이메일이 아니므로 깃허브 공개되어도 안전함)
+		const AUTH_ACCOUNT_EMAIL = "admin@forex.local";
+
+		window.db = db;
+		window.fs = { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDoc, setDoc, query, orderBy };
+		window.auth = auth;
+
+		// 🔑 비밀번호 검증 로그인 함수
+		window.loginWithPassword = async function () {
+			const pwd = document.getElementById('site-password').value;
+			if (!pwd) {
+				Swal.fire({ icon: 'warning', title: '비밀번호를 입력하세요.', confirmButtonText: '확인' });
+				return;
+			}
+
+			showLoading("비밀번호 확인 중...");
+			try {
+				await signInWithEmailAndPassword(auth, AUTH_ACCOUNT_EMAIL, pwd);
+				hideLoading();
+				document.getElementById('site-password').value = '';
+			} catch (e) {
+				hideLoading();
+				Swal.fire({
+					icon: 'error',
+					title: '접속 실패',
+					text: '비밀번호가 올바르지 않습니다.',
+					confirmButtonText: '확인'
+				});
+				document.getElementById('site-password').value = '';
+			}
+		};
+
+		// 🔒 세션 잠금(로그아웃)
+		window.logoutSession = async function () {
+			await signOut(auth);
+			location.reload();
+		};
+
+		// 인증 상태 실시간 감지 (한 번 로그인하면 스마트폰에서 계속 유지)
+		onAuthStateChanged(auth, (user) => {
+			if (user) {
+				document.getElementById('auth-screen').style.display = 'none';
+				document.getElementById('main-content').style.display = 'block';
+
+				if (typeof initFirebaseListeners === 'function') {
+					initFirebaseListeners();
+				}
+				refreshCurrentRates();
+			} else {
+				document.getElementById('auth-screen').style.display = 'flex';
+				document.getElementById('main-content').style.display = 'none';
+			}
+		});
+	</script>
+
+	<script>
+		var globalData = {
+			usd: { currentPrice: 1357.67, history: [] },
+			jpy: { currentPrice: 915.20, history: [] },
+			soldHistory: [],
+			settings: {
+				USD_BASE_PRICE: 1300, USD_GAP: 10,
+				JPY_BASE_PRICE: 900, JPY_GAP: 5,
+				FINANCE_LIST: "하나은행,토스뱅크,삼성증권,스위치원,국민은행,신한은행,테더"
+			}
+		};
+
+		var recordModal;
+		var currentSoldFilter = 'all';
+		var currentSoldPage = 1;
+		var currentSoldPageSize = 10;
+
+		function escapeHtml(unsafe) {
+			if (unsafe == null) return '';
+			return String(unsafe)
+				.replace(/&/g, "&amp;")
+				.replace(/</g, "&lt;")
+				.replace(/>/g, "&gt;")
+				.replace(/"/g, "&quot;")
+				.replace(/'/g, "&#039;");
+		}
+
+		function safeMultiply(a, b) {
+			return Number((Number(a) * Number(b)).toFixed(6));
+		}
+
+		function formatDateTime(d) {
+			var date = d instanceof Date ? d : new Date(d);
+			if (isNaN(date.getTime())) return d;
+			var pad = (n) => (n < 10 ? '0' + n : n);
+			return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+		}
+
+		document.addEventListener("DOMContentLoaded", function () {
+			recordModal = new bootstrap.Modal(document.getElementById('recordModal'));
+
+			var cachedData = localStorage.getItem('forex_invest_cache');
+			if (cachedData) {
+				try {
+					globalData = JSON.parse(cachedData);
+					renderDashboard(globalData);
+				} catch (e) { console.error("캐시 파싱 오류", e); }
+			}
+
+			var settingTabBtn = document.getElementById('setting-tab');
+			if (settingTabBtn) {
+				settingTabBtn.addEventListener('shown.bs.tab', applySettingsToInputs);
+			}
+
+			flatpickr("#form-date", {
+				enableTime: true,
+				enableSeconds: true,
+				time_24hr: true,
+				dateFormat: "Y-m-d H:i:S",
+				disableMobile: true,
+				minuteIncrement: 1
+			});
+
+			document.getElementById('recordModal').addEventListener('shown.bs.modal', function () {
+				var priceInput = document.getElementById('form-price');
+				if (priceInput) {
+					priceInput.focus();
+					priceInput.select();
+				}
+			});
+		});
+
+		// 실시간 환율 수집 (야후 파이낸스 실시간 원/달러, 원/엔)
+		async function refreshCurrentRates() {
+			console.log("🔄 실시간 환율 조회 시작...");
+			try {
+				// CORS 우회 및 야후 실시간 금융 데이터 직접 조회
+				const [usdRes, jpyRes] = await Promise.all([
+					fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/USDKRW=X?interval=1m&range=1d")),
+					fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/JPYKRW=X?interval=1m&range=1d"))
+				]);
+
+				const usdJson = await usdRes.json();
+				const jpyJson = await jpyRes.json();
+
+				const usdData = JSON.parse(usdJson.contents);
+				const jpyData = JSON.parse(jpyJson.contents);
+
+				const usdRate = usdData.chart.result[0].meta.regularMarketPrice;
+				const jpyRateRaw = jpyData.chart.result[0].meta.regularMarketPrice;
+
+				if (usdRate) {
+					globalData.usd.currentPrice = Number(usdRate.toFixed(2));
+				}
+				if (jpyRateRaw) {
+					// 1엔 기준 -> 100엔 기준 환산
+					const jpy100 = jpyRateRaw < 50 ? jpyRateRaw * 100 : jpyRateRaw;
+					globalData.jpy.currentPrice = Number(jpy100.toFixed(2));
+				}
+
+				renderDashboard(globalData);
+				console.log(`✅ [실시간 환율 수신 성공] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
+
+			} catch (err) {
+				console.warn("⚠️ 야후 프록시 지연으로 대체 API 호출:", err);
+				try {
+					const altRes = await fetch("https://open.er-api.com/v6/latest/USD");
+					const altData = await altRes.json();
+					if (altData && altData.rates) {
+						globalData.usd.currentPrice = Number(altData.rates.KRW.toFixed(2));
+						globalData.jpy.currentPrice = Number(((altData.rates.KRW / altData.rates.JPY) * 100).toFixed(2));
+						renderDashboard(globalData);
+						console.log(`✅ [대체 환율 수신 성공] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
+					}
+				} catch (e2) {
+					console.error("❌ 모든 환율 수신 실패:", e2);
+				}
+			}
+		}
+
+		// ======================== Firebase 실시간 리스너 ========================
+		function initFirebaseListeners() {
+			if (!window.db || !window.fs) {
+				setTimeout(initFirebaseListeners, 200);
+				return;
+			}
+
+			const { collection, onSnapshot, query, orderBy, doc } = window.fs;
+
+			// 1. 설정값 실시간 구독
+			onSnapshot(doc(window.db, "settings", "general"), (docSnap) => {
+				if (docSnap.exists()) {
+					globalData.settings = docSnap.data();
+					applySettingsToInputs();
+					renderDashboard(globalData);
+				} else {
+					window.fs.setDoc(doc(window.db, "settings", "general"), globalData.settings);
+				}
+			});
+
+			// 2. 달러/엔화 투자 내역 실시간 구독
+			const qTrades = query(collection(window.db, "investments"), orderBy("createdAt", "desc"));
+			onSnapshot(qTrades, (snapshot) => {
+				const usdList = [];
+				const jpyList = [];
+				let usdNo = 1, jpyNo = 1;
+
+				const docs = [];
+				snapshot.forEach(d => docs.push({ id: d.id, ...d.data() }));
+				docs.reverse();
+
+				docs.forEach(item => {
+					if (item.type === 'usd') {
+						usdList.push({ ...item, no: usdNo++ });
+					} else if (item.type === 'jpy') {
+						jpyList.push({ ...item, no: jpyNo++ });
+					}
+				});
+
+				globalData.usd.history = usdList.reverse();
+				globalData.jpy.history = jpyList.reverse();
+
+				localStorage.setItem('forex_invest_cache', JSON.stringify(globalData));
+				renderDashboard(globalData);
+			});
+
+			// 3. 매도완료 내역 실시간 구독
+			const qSold = query(collection(window.db, "soldHistory"), orderBy("createdAt", "desc"));
+			onSnapshot(qSold, (snapshot) => {
+				const soldList = [];
+				let soldNo = 1;
+				const docs = [];
+				snapshot.forEach(d => docs.push({ id: d.id, ...d.data() }));
+				docs.reverse();
+
+				docs.forEach(item => {
+					soldList.push({ ...item, no: soldNo++ });
+				});
+
+				globalData.soldHistory = soldList.reverse();
+				localStorage.setItem('forex_invest_cache', JSON.stringify(globalData));
+				renderDashboard(globalData);
+			});
+		}
+
+		function getFinanceBadge(name) {
+			if (!name) return '';
+			var bgColor = '#495057', textColor = '#ffffff';
+			if (name.includes('토스')) { bgColor = '#3182f6'; }
+			else if (name.includes('삼성')) { bgColor = '#1428a0'; }
+			else if (name.includes('하나')) { bgColor = '#008485'; }
+			else if (name.includes('키움')) { bgColor = '#d81347'; }
+			else if (name.includes('NH') || name.includes('나무')) { bgColor = '#ffcc00'; textColor = '#111111'; }
+			else if (name.includes('국민') || name.includes('KB')) { bgColor = '#ffbc00'; textColor = '#111111'; }
+			else if (name.includes('신한')) { bgColor = '#0b40e4'; }
+			else if (name.includes('카카오')) { bgColor = '#ffe812'; textColor = '#111111'; }
+			else if (name.includes('미래에셋')) { bgColor = '#ff6200'; }
+			else if (name.includes('한국투자') || name.includes('한투')) { bgColor = '#000000'; }
+			return `<span class="shadow-sm" style="height: 28px; padding: 0 12px; font-weight: 700; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; background-color: ${bgColor}; color: ${textColor}; letter-spacing: -0.02em;">${name}</span>`;
+		}
+
+		function showLoading(text) {
+			document.getElementById('loading-text').innerText = text || "데이터 처리 중...";
+			document.getElementById('loading').style.display = 'flex';
+		}
+
+		function hideLoading() {
+			document.getElementById('loading').style.display = 'none';
+		}
+
+		function applySettingsToInputs() {
+			if (globalData && globalData.settings) {
+				document.getElementById('input-usd-base').value = Number(globalData.settings.USD_BASE_PRICE) || 0;
+				document.getElementById('input-usd-gap').value = Number(globalData.settings.USD_GAP) || 0;
+				document.getElementById('input-jpy-base').value = Number(globalData.settings.JPY_BASE_PRICE) || 0;
+				document.getElementById('input-jpy-gap').value = Number(globalData.settings.JPY_GAP) || 0;
+				var financeListStr = globalData.settings.FINANCE_LIST || "하나은행,토스뱅크,삼성증권";
+				document.getElementById('input-finance-list').value = financeListStr;
+
+				var financeSelect = document.getElementById('form-finance');
+				financeSelect.innerHTML = '';
+				financeListStr.split(',').forEach(function (item) {
+					var val = item.trim();
+					if (val) {
+						var opt = document.createElement('option');
+						opt.value = val;
+						opt.innerText = val;
+						financeSelect.appendChild(opt);
+					}
+				});
+			}
+		}
+
+		function renderDashboard(data) {
+			if (!data || !data.settings) return;
+			applySettingsToInputs();
+			renderTable('usd', data.usd, data.settings.USD_BASE_PRICE, data.settings.USD_GAP);
+			renderTable('jpy', data.jpy, data.settings.JPY_BASE_PRICE, data.settings.JPY_GAP);
+			processAndRenderSoldData();
+		}
+
+		function calculateTotalBuy() {
+			var price = Number(document.getElementById('form-price').value) || 0;
+			var amount = Number(document.getElementById('form-amount').value) || 0;
+			var type = document.getElementById('form-type').value;
+			if (price > 0 && amount > 0) {
+				var total = type === 'jpy' ? safeMultiply(price, amount) / 100 : safeMultiply(price, amount);
+				document.getElementById('form-totalbuy').value = Math.round(total);
+			}
+		}
+
+		function changeSoldFilter(filterValue) { currentSoldFilter = filterValue; currentSoldPage = 1; processAndRenderSoldData(); }
+		function changeSoldPageSize() { currentSoldPageSize = parseInt(document.getElementById('soldPageSize').value) || 10; currentSoldPage = 1; processAndRenderSoldData(); }
+		function setSoldPage(pageNumber) { currentSoldPage = pageNumber; processAndRenderSoldData(); }
+
+		function processAndRenderSoldData() {
+			var soldList = globalData.soldHistory || [];
+			var totalAccumulatedProfit = 0, usdAccumulatedProfit = 0, jpyAccumulatedProfit = 0;
+
+			soldList.forEach(function (item) {
+				totalAccumulatedProfit += item.profit;
+				if (item.type === '달러') usdAccumulatedProfit += item.profit;
+				if (item.type === '엔화') jpyAccumulatedProfit += item.profit;
+			});
+
+			document.getElementById('total-accumulated-profit').innerText = (totalAccumulatedProfit >= 0 ? '+' : '') + totalAccumulatedProfit.toLocaleString() + "원";
+			document.getElementById('usd-accumulated-profit').innerText = (usdAccumulatedProfit >= 0 ? '+' : '') + usdAccumulatedProfit.toLocaleString() + "원";
+			document.getElementById('jpy-accumulated-profit').innerText = (jpyAccumulatedProfit >= 0 ? '+' : '') + jpyAccumulatedProfit.toLocaleString() + "원";
+
+			var filteredList = soldList;
+			if (currentSoldFilter !== 'all') filteredList = soldList.filter(function (item) { return item.type === currentSoldFilter; });
+
+			var totalItems = filteredList.length;
+			var totalPages = Math.ceil(totalItems / currentSoldPageSize) || 1;
+			if (currentSoldPage > totalPages) currentSoldPage = totalPages;
+
+			var startIndex = (currentSoldPage - 1) * currentSoldPageSize;
+			var endIndex = Math.min(startIndex + currentSoldPageSize, totalItems);
+			var pagedList = filteredList.slice(startIndex, endIndex);
+
+			var tbody = document.getElementById('sold-table-body');
+			var mDiv = document.getElementById('sold-mobile-list');
+			tbody.innerHTML = ''; mDiv.innerHTML = '';
+
+			if (pagedList.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="12" class="text-center text-muted py-4">해당 내역이 존재하지 않습니다.</td></tr>`;
+				mDiv.innerHTML = `<div class="text-center text-muted py-3">해당 내역이 존재하지 않습니다.</div>`;
+			} else {
+				pagedList.forEach(function (item) {
+					var displayNo = item.no;
+					var profitClass = item.profit > 0 ? 'stock-up' : (item.profit < 0 ? 'stock-down' : 'stock-stable');
+					var profitSign = item.profit >= 0 ? '+' : '';
+					var badgeClass = item.type === '달러' ? 'bg-white border border-primary text-primary' : 'bg-white border border-danger text-danger';
+					var textBadgeHtml = `<span class="badge ${badgeClass} px-3 py-2 fs-6" style="letter-spacing: 0.05em;">${item.type === '달러' ? '💵 달러' : '💴 엔화'}</span>`;
+
+					var safeFinance = escapeHtml(item.finance);
+					var safeBuyDate = escapeHtml(item.buyDate);
+					var safeSellDate = escapeHtml(item.sellDate);
+
+					var tr = document.createElement('tr');
+					tr.innerHTML = `
+            <td class="text-muted fw-bold">${displayNo}</td>
+            <td>${getFinanceBadge(safeFinance)}</td>
+            <td>${textBadgeHtml}</td>
+            <td>${safeBuyDate}</td>
+            <td>${item.buyPrice.toLocaleString()}원</td>
+            <td class="fw-bold">${item.amount.toLocaleString()}</td>
+            <td>${item.totalBuy.toLocaleString()}원</td>
+            <td>${safeSellDate}</td>
+            <td>${item.sellPrice.toLocaleString()}원</td>
+            <td>${item.totalSell.toLocaleString()}원</td>
+            <td class="${profitClass} fw-bold">${profitSign}${item.profit.toLocaleString()}원</td>
+            <td class="text-center"><button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></td>
+          `;
+					tbody.appendChild(tr);
+
+					var cardBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
+					var mCard = document.createElement('div');
+					mCard.className = 'mobile-record-card';
+					mCard.style.borderLeft = '5px solid ' + cardBorderColor;
+					mCard.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+              <span class="fw-bold text-dark d-flex align-items-center">
+                <span class="text-muted small me-2">No.${displayNo}</span> ${getFinanceBadge(safeFinance)} <span class="ms-1">${textBadgeHtml}</span>
+              </span>
+              <button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="row g-3 small text-dark mb-3">
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold" style="font-size:0.9rem;">${safeBuyDate.replace(' ', '<br>')}</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매도일자</div><div class="fw-bold" style="font-size:0.9rem;">${safeSellDate.replace(' ', '<br>')}</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수환율</div><div class="fw-bold" style="font-size:0.9rem;">${item.buyPrice.toLocaleString()}원</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매도환율</div><div class="fw-bold" style="font-size:0.9rem;">${item.sellPrice.toLocaleString()}원</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수원금</div><div class="fw-bold" style="font-size:0.9rem;">${item.totalBuy.toLocaleString()}원</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">정산금액</div><div class="fw-bold" style="font-size:0.9rem;">${item.totalSell.toLocaleString()}원</div></div>
+            </div>
+            <div class="border-top pt-3 mt-1 d-flex justify-content-between align-items-center">
+              <span class="text-muted small">확정 실현손익</span><span class="${profitClass} fw-bold fs-5">${profitSign}${item.profit.toLocaleString()}원</span>
+            </div>
+          `;
+					mDiv.appendChild(mCard);
+				});
+			}
+			renderPaginationNav(totalPages);
+		}
+
+		async function deleteHistoryRecord(docId) {
+			const result = await Swal.fire({
+				title: '실현손익 데이터 삭제',
+				text: "이 실현손익 기록을 데이터베이스에서 영구히 삭제합니까?",
+				icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: '삭제', cancelButtonText: '취소'
+			});
+
+			if (result.isConfirmed) {
+				showLoading("삭제 처리 중...");
+				try {
+					await window.fs.deleteDoc(window.fs.doc(window.db, "soldHistory", docId));
+					hideLoading();
+					Swal.fire({
+						icon: 'success',
+						title: '삭제 완료',
+						confirmButtonText: '확인',
+						timer: 1800,
+						timerProgressBar: true
+					});
+				} catch (err) {
+					hideLoading();
+					Swal.fire({ icon: 'error', title: '삭제 실패', text: err.message, confirmButtonText: '확인' });
+				}
+			}
+		}
+
+		function renderPaginationNav(totalPages) {
+			var navEl = document.getElementById('sold-pagination-nav'); navEl.innerHTML = '';
+			if (totalPages <= 1) return;
+			var ul = document.createElement('ul'); ul.className = 'pagination pagination-sm m-0 shadow-sm';
+			var prevLi = document.createElement('li'); prevLi.className = 'page-item' + (currentSoldPage === 1 ? ' disabled' : ''); prevLi.innerHTML = `<a class="page-link" href="#" onclick="setSoldPage(${currentSoldPage - 1}); return false;"><i class="fas fa-chevron-left"></i></a>`; ul.appendChild(prevLi);
+			for (var p = 1; p <= totalPages; p++) { var pLi = document.createElement('li'); pLi.className = 'page-item' + (currentSoldPage === p ? ' active' : ''); pLi.innerHTML = `<a class="page-link fw-bold" href="#" onclick="setSoldPage(${p}); return false;">${p}</a>`; ul.appendChild(pLi); }
+			var nextLi = document.createElement('li'); nextLi.className = 'page-item' + (currentSoldPage === totalPages ? ' disabled' : ''); nextLi.innerHTML = `<a class="page-link" href="#" onclick="setSoldPage(${currentSoldPage + 1}); return false;"><i class="fas fa-chevron-right"></i></a>`; ul.appendChild(nextLi);
+			navEl.appendChild(ul);
+		}
+
+		function renderTable(type, currencyData, basePrice, gapPrice) {
+			var current = Number(currencyData.currentPrice) || 0;
+			var history = currencyData.history || [];
+			var tbody = document.getElementById(type + '-table-body');
+			var mDiv = document.getElementById(type + '-mobile-list');
+			basePrice = Number(basePrice) || 0; gapPrice = Number(gapPrice) || 0;
+			tbody.innerHTML = ''; mDiv.innerHTML = '';
+
+			var lastBuyPrice = null, activeBuyCount = 0, sumTotalBuy = 0, sumTotalValuation = 0;
+			var sumForeignAmount = 0;
+
+			if (history.length === 0) {
+				tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4">누적된 투자 기록이 없습니다.</td></tr>`;
+				mDiv.innerHTML = `<div class="text-center text-muted py-4">누적된 투자 기록이 없습니다.</div>`;
+			} else {
+				history.forEach(function (item) {
+					var buyPrice = Number(item.buyPrice) || 0, foreignAmount = Number(item.foreignAmount) || 0, totalBuy = Number(item.totalBuy) || 0;
+					var memo = item.memo || '', dateText = item.date || '-', unitIcon = type === 'usd' ? '$' : '¥';
+
+					var safeFinance = escapeHtml(item.finance);
+					var safeDateText = escapeHtml(dateText);
+					var financeStrEscaped = safeFinance.replace(/'/g, "\\'");
+
+					var isSold = memo.includes('매도완료');
+					if (!isSold) {
+						lastBuyPrice = buyPrice;
+						activeBuyCount++;
+						sumTotalBuy += totalBuy;
+						sumForeignAmount += foreignAmount;
+					}
+
+					var currentValuation = type === 'jpy' ? safeMultiply(foreignAmount, current) / 100 : safeMultiply(foreignAmount, current);
+					var currentProfit = Number((currentValuation - totalBuy).toFixed(4));
+
+					if (!isSold) { sumTotalValuation += currentValuation; }
+
+					var profitRate = totalBuy > 0 ? ((currentProfit / totalBuy) * 100).toFixed(2) : "0.00";
+					var isProfit = currentProfit > 0 && !isSold;
+
+					var tr = document.createElement('tr');
+					if (isProfit) tr.className = 'sell-highlight';
+
+					var stockClass = isSold ? 'text-muted' : (currentProfit > 0 ? 'stock-up' : (currentProfit < 0 ? 'stock-down' : 'stock-stable'));
+					var profitRateText = isSold ? '-' : (currentProfit >= 0 ? '+' + profitRate + '%' : profitRate + '%');
+					var profitAmtText = isSold ? '-' : (currentProfit >= 0 ? '+' + Math.round(currentProfit).toLocaleString() : Math.round(currentProfit).toLocaleString());
+					var valuationText = isSold ? '-' : Math.round(currentValuation).toLocaleString() + "원";
+
+					var positionHtml = isProfit && !isSold ? `<div class="text-center" style="height:38px;"><span class="badge-position-sell"><i class="fas fa-bolt"></i> 매도추천</span></div>` : `<div class="text-center" style="height:38px;"><span class="badge-position-hold">🟢 매수완료</span></div>`;
+					var mobilePositionHtml = isProfit && !isSold ? `<span class="badge-position-sell"><i class="fas fa-bolt"></i> 매도추천</span>` : `<span class="badge-position-hold">🟢 매수완료</span>`;
+
+					var sellActionButton = (isProfit && !isSold) ? `<button type="button" class="btn btn-success btn-action-sell me-1 fw-bold text-white" onclick="executeSale('${type}', '${item.id}', ${current})">💰 매도 완료</button>` : '';
+
+					var actionButtons = `<div class="text-center d-flex justify-content-center gap-1" style="height:38px;">${sellActionButton}<button type="button" class="btn btn-outline-primary btn-action-icon" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button><button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></div>`;
+					var mobileActionButtons = `<div class="d-flex gap-1">${sellActionButton}<button type="button" class="btn btn-outline-primary btn-action-icon" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button><button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></div>`;
+
+					tr.innerHTML = `<td class="text-muted fw-bold">${item.no}</td>
+                          <td>${getFinanceBadge(safeFinance)}</td>
+                          <td>${safeDateText}</td><td>${buyPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}원</td>
+                          <td class="fw-bold">${unitIcon}${foreignAmount.toLocaleString()}</td>
+                          <td>${totalBuy.toLocaleString()}원</td><td>${valuationText}</td>
+                          <td class="${stockClass}">${profitAmtText}원</td><td class="${stockClass}">${profitRateText}</td>
+                          <td>${positionHtml}</td><td>${actionButtons}</td>`;
+					tbody.appendChild(tr);
+
+					var baseBorderColor = type === 'usd' ? '#0d6efd' : '#dc3545';
+					var mCard = document.createElement('div');
+					mCard.className = 'mobile-record-card' + (isProfit ? ' profit-active' : '');
+					mCard.style.borderLeft = '5px solid ' + baseBorderColor;
+					mCard.innerHTML = `
+            <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+              <span class="fw-bold text-secondary fs-6 d-flex align-items-center">
+                No.${item.no} <span class="ms-2">${getFinanceBadge(safeFinance)}</span>
+              </span>
+              <div>${mobilePositionHtml}</div>
+            </div>
+            <div class="row g-3 small text-dark mb-3">
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold" style="font-size:0.9rem;">${safeDateText.replace(' ', '<br>')}</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수환율(₩)</div><div class="fw-bold" style="font-size:0.9rem;">${buyPrice.toLocaleString()}원</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수수량</div><div class="fw-bold" style="font-size:0.9rem;">${unitIcon}${foreignAmount.toLocaleString()}</div></div>
+              <div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수금(₩)</div><div class="fw-bold" style="font-size:0.9rem;">${totalBuy.toLocaleString()}원</div></div>
+              <div class="col-12"><div class="text-muted mb-1" style="font-size:0.75rem;">평가금(₩)</div><div class="fw-bold" style="font-size:0.9rem;">${valuationText}</div></div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center border-top pt-3 mt-1">
+              <div class="lh-sm"><span class="small text-muted block-label" style="font-size:0.78rem;">손익</span><br><span class="${stockClass} fw-bold" style="font-size:1.0rem;">${profitAmtText}원</span><br><span class="${stockClass} small" style="font-size:0.85rem;">(${profitRateText})</span></div>
+              <div>${mobileActionButtons}</div>
+            </div>
+          `;
+					mDiv.appendChild(mCard);
+				});
+			}
+
+			var avgBuyPrice = 0;
+			if (sumForeignAmount > 0) {
+				avgBuyPrice = type === 'jpy' ? (sumTotalBuy / sumForeignAmount) * 100 : (sumTotalBuy / sumForeignAmount);
+			}
+			var sumTotalProfit = sumTotalValuation - sumTotalBuy;
+			var sumProfitRate = sumTotalBuy > 0 ? ((sumTotalProfit / sumTotalBuy) * 100).toFixed(2) : "0.00";
+
+			var prefix = type === 'usd' ? '🇺🇸 USD ' : '🇯🇵 JPY ';
+			var profitSign = sumTotalProfit > 0 ? "+" : "";
+			var profitClass = sumTotalProfit > 0 ? "profit-up" : (sumTotalProfit < 0 ? "profit-down" : "text-dark fw-bold");
+
+			document.getElementById(type + '-total-asset').innerText = prefix + sumForeignAmount.toLocaleString();
+			document.getElementById(type + '-sum-foreign').innerText = prefix + sumForeignAmount.toLocaleString();
+			document.getElementById(type + '-sum-krw').innerText = sumTotalBuy.toLocaleString() + '원';
+			document.getElementById(type + '-avg-buy').innerText = avgBuyPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
+
+			document.getElementById(type + '-current-valuation').innerText = Math.round(sumTotalValuation).toLocaleString() + '원';
+			document.getElementById(type + '-current-rate').innerText = current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
+
+			var profitEl = document.getElementById(type + '-expected-profit');
+			profitEl.innerText = profitSign + Math.round(sumTotalProfit).toLocaleString() + '원';
+			profitEl.className = "fs-val " + profitClass;
+
+			var rateEl = document.getElementById(type + '-expected-rate');
+			rateEl.innerText = profitSign + sumProfitRate + '%';
+			rateEl.className = "fs-val " + profitClass;
+
+			if (document.getElementById(type + '-current-valuation-mobile')) {
+				document.getElementById(type + '-current-valuation-mobile').innerText = Math.round(sumTotalValuation).toLocaleString() + '원';
+
+				var mRateEl = document.getElementById(type + '-expected-rate-mobile');
+				mRateEl.innerText = profitSign + sumProfitRate + '%';
+				mRateEl.className = "fw-bold fs-5 " + profitClass;
+
+				document.getElementById(type + '-current-rate-mobile-sub').innerText = current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
+
+				var mProfitEl = document.getElementById(type + '-expected-profit-mobile');
+				mProfitEl.innerText = profitSign + Math.round(sumTotalProfit).toLocaleString() + '원';
+				mProfitEl.className = "fs-val " + profitClass;
+			}
+		}
+
+		async function executeSale(type, docId, defaultPrice) {
+			var formattedDefault = (type === 'jpy' && defaultPrice < 50) ? defaultPrice * 100 : defaultPrice;
+
+			const result = await Swal.fire({
+				title: '매도 익절 확정',
+				html: `해당 데이터를 실현 손익으로 이관합니다.<br><br>
+               <div class="text-start mb-1 fw-bold small text-secondary">적용할 매도 환율(₩)</div>
+               <input type="number" id="swal-input-sell-price" class="form-control form-control-lg text-primary fw-bold" value="${formattedDefault.toFixed(2)}" step="0.01">`,
+				icon: 'question',
+				showCancelButton: true, confirmButtonColor: '#198754', cancelButtonColor: '#6c757d', confirmButtonText: '네, 이관 후 삭제', cancelButtonText: '취소',
+				didOpen: () => {
+					var input = document.getElementById('swal-input-sell-price');
+					if (input) { input.focus(); input.select(); }
+				},
+				preConfirm: () => {
+					var val = document.getElementById('swal-input-sell-price').value;
+					if (!val || Number(val) <= 0) Swal.showValidationMessage('유효한 매도 환율을 입력해주세요.');
+					return Number(val);
+				}
+			});
+
+			if (result.isConfirmed) {
+				var manualSellPrice = result.value;
+				showLoading("기록을 이관 처리 중입니다...");
+
+				try {
+					const docRef = window.fs.doc(window.db, "investments", docId);
+					const docSnap = await window.fs.getDoc(docRef);
+					if (!docSnap.exists()) throw new Error("문서를 찾을 수 없습니다.");
+
+					const item = docSnap.data();
+					var sellDate = formatDateTime(new Date());
+					var amount = Number(item.foreignAmount) || 0;
+					var totalBuy = Number(item.totalBuy) || 0;
+
+					var totalSell = type === 'jpy' ? (amount * manualSellPrice / 100) : (amount * manualSellPrice);
+					totalSell = Math.round(Number(totalSell.toFixed(4)));
+					var profit = totalSell - totalBuy;
+
+					await window.fs.addDoc(window.fs.collection(window.db, "soldHistory"), {
+						type: type === 'usd' ? "달러" : "엔화",
+						buyDate: item.date,
+						buyPrice: item.buyPrice,
+						amount: amount,
+						totalBuy: totalBuy,
+						sellDate: sellDate,
+						sellPrice: manualSellPrice,
+						totalSell: totalSell,
+						profit: profit,
+						finance: item.finance || "",
+						createdAt: Date.now()
+					});
+
+					await window.fs.deleteDoc(docRef);
+
+					hideLoading();
+					Swal.fire({
+						icon: 'success',
+						title: '정산 완료',
+						text: '실현손익으로 안전하게 이관되었습니다.',
+						confirmButtonText: '확인',
+						timer: 2000,
+						timerProgressBar: true
+					});
+				} catch (err) {
+					hideLoading();
+					Swal.fire({ icon: 'error', title: '처리 오류', text: err.message, confirmButtonText: '확인' });
+				}
+			}
+		}
+
+		function openAddModal(type) {
+			document.getElementById('recordForm').reset();
+			document.getElementById('form-type').value = type;
+			document.getElementById('form-docid').value = '';
+			var financeSelect = document.getElementById('form-finance');
+			if (financeSelect.options.length > 0) financeSelect.selectedIndex = 0;
+			var dateInput = document.getElementById('form-date');
+			if (dateInput._flatpickr) dateInput._flatpickr.setDate(new Date());
+
+			document.getElementById('submitBtn').innerText = '추가하기';
+			document.getElementById('submitBtn').className = 'btn btn-primary px-4 btn-sm';
+
+			if (type === 'usd') {
+				document.getElementById('modalTitle').innerHTML = '💵 달러 투자 기록 추가';
+				document.getElementById('label-price-unit').innerText = '매수환율(₩)';
+				document.getElementById('label-foreign').innerText = '매수수량 ($)';
+				var currentUsd = globalData.usd ? parseFloat(globalData.usd.currentPrice) : 0;
+				document.getElementById('form-price').value = currentUsd > 0 ? currentUsd.toFixed(2) : "";
+				document.getElementById('form-amount').value = 1000;
+			} else {
+				document.getElementById('modalTitle').innerHTML = '💴 엔화 투자 기록 추가';
+				document.getElementById('label-price-unit').innerText = '매수환율(₩)';
+				document.getElementById('label-foreign').innerText = '매수수량 (¥)';
+				var currentJpy = globalData.jpy ? parseFloat(globalData.jpy.currentPrice) : 0;
+				document.getElementById('form-price').value = currentJpy > 0 ? currentJpy.toFixed(2) : "";
+				document.getElementById('form-amount').value = 100000;
+			}
+			calculateTotalBuy();
+			recordModal.show();
+		}
+
+		function openEditModal(type, docId, date, buyPrice, foreignAmount, totalBuy, finance) {
+			document.getElementById('form-type').value = type;
+			document.getElementById('form-docid').value = docId;
+			var dateInput = document.getElementById('form-date');
+			if (dateInput._flatpickr) dateInput._flatpickr.setDate(date);
+			else dateInput.value = date;
+
+			document.getElementById('form-price').value = Number(buyPrice);
+			document.getElementById('form-amount').value = Number(foreignAmount);
+			document.getElementById('form-totalbuy').value = Math.round(Number(totalBuy));
+			document.getElementById('form-finance').value = finance || '';
+
+			document.getElementById('submitBtn').innerText = '수정';
+			document.getElementById('submitBtn').className = 'btn btn-success px-4 btn-sm';
+			document.getElementById('label-price-unit').innerText = '매수환율(₩)';
+			document.getElementById('label-foreign').innerText = type === 'usd' ? '매수수량 ($)' : '매수수량 (¥)';
+			document.getElementById('modalTitle').innerHTML = type === 'usd' ? '💵 달러 투자 기록 수정' : '💴 엔화 투자 기록 수정';
+			recordModal.show();
+		}
+
+		document.getElementById('recordForm').addEventListener('submit', async function (e) {
+			e.preventDefault();
+			var type = document.getElementById('form-type').value;
+			var docId = document.getElementById('form-docid').value;
+			var date = document.getElementById('form-date').value;
+			var buyPrice = Number(document.getElementById('form-price').value);
+			var foreignAmount = Number(document.getElementById('form-amount').value);
+			var totalBuy = Number(document.getElementById('form-totalbuy').value);
+			var finance = document.getElementById('form-finance').value;
+
+			recordModal.hide();
+			showLoading("데이터 저장 중...");
+
+			try {
+				if (!docId) {
+					await window.fs.addDoc(window.fs.collection(window.db, "investments"), {
+						type: type,
+						date: date,
+						buyPrice: buyPrice,
+						foreignAmount: foreignAmount,
+						totalBuy: totalBuy,
+						finance: finance,
+						memo: "보유중",
+						createdAt: Date.now()
+					});
+					hideLoading();
+					Swal.fire({
+						icon: 'success',
+						title: '기록 추가 완료',
+						confirmButtonText: '확인',
+						timer: 1800,
+						timerProgressBar: true
+					});
+				} else {
+					await window.fs.updateDoc(window.fs.doc(window.db, "investments", docId), {
+						date: date,
+						buyPrice: buyPrice,
+						foreignAmount: foreignAmount,
+						totalBuy: totalBuy,
+						finance: finance
+					});
+					hideLoading();
+					Swal.fire({
+						icon: 'success',
+						title: '기록 수정 완료',
+						confirmButtonText: '확인',
+						timer: 1800,
+						timerProgressBar: true
+					});
+				}
+			} catch (err) {
+				hideLoading();
+				Swal.fire({ icon: 'error', title: '저장 실패', text: err.message, confirmButtonText: '확인' });
+			}
+		});
+
+		async function deleteRecord(docId) {
+			const result = await Swal.fire({
+				title: '데이터 삭제 경고',
+				text: "해당 투자 기록이 즉시 영구 삭제됩니다.",
+				icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: '삭제', cancelButtonText: '취소'
+			});
+
+			if (result.isConfirmed) {
+				showLoading("삭제 중...");
+				try {
+					await window.fs.deleteDoc(window.fs.doc(window.db, "investments", docId));
+					hideLoading();
+					Swal.fire({
+						icon: 'success',
+						title: '삭제 성공',
+						confirmButtonText: '확인',
+						timer: 1800,
+						timerProgressBar: true
+					});
+				} catch (err) {
+					hideLoading();
+					Swal.fire({ icon: 'error', title: '삭제 실패', text: err.message, confirmButtonText: '확인' });
+				}
+			}
+		}
+
+		function toggleReceipt(type, btn) {
+			var detailBox = document.getElementById(type + '-receipt-details');
+			detailBox.classList.toggle('show');
+			if (detailBox.classList.contains('show')) {
+				btn.innerHTML = '간략히 접기 <i class="fas fa-chevron-up ms-1"></i>';
+			} else {
+				btn.innerHTML = '자세히 보기 <i class="fas fa-chevron-down ms-1"></i>';
+			}
+		}
+
+		document.getElementById('settingForm').addEventListener('submit', async function (e) {
+			e.preventDefault();
+			var usdBase = Number(document.getElementById('input-usd-base').value);
+			var usdGap = Number(document.getElementById('input-usd-gap').value);
+			var jpyBase = Number(document.getElementById('input-jpy-base').value);
+			var jpyGap = Number(document.getElementById('input-jpy-gap').value);
+			var financeList = document.getElementById('input-finance-list').value;
+
+			showLoading("설정값 저장 중...");
+			try {
+				await window.fs.setDoc(window.fs.doc(window.db, "settings", "general"), {
+					USD_BASE_PRICE: usdBase,
+					USD_GAP: usdGap,
+					JPY_BASE_PRICE: jpyBase,
+					JPY_GAP: jpyGap,
+					FINANCE_LIST: financeList
+				});
+				hideLoading();
+				Swal.fire({
+					icon: 'success',
+					title: '설정 저장 성공',
+					confirmButtonText: '확인',
+					timer: 1800,
+					timerProgressBar: true
+				});
+			} catch (err) {
+				hideLoading();
+				Swal.fire({ icon: 'error', title: '저장 실패', text: err.message, confirmButtonText: '확인' });
+			}
+		});
+	</script>
+</body>
+
+</html>
