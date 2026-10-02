@@ -301,7 +301,7 @@
 			color: #fff;
 		}
 
-		/* 🔒 비밀번호 잠금 화면 전용 스타일 */
+		/* 🔒 비밀번호 잠금 화면 스타일 */
 		.auth-container {
 			min-height: 80vh;
 			display: flex;
@@ -323,8 +323,10 @@
 			display: none;
 		}
 
-		#site-password { letter-spacing: 0.15em; }
-		
+		#site-password {
+			letter-spacing: 0.15em;
+		}
+
 		/* 비밀번호 입력창에 포커스 시 placeholder 즉시 숨김 */
 		#site-password:focus::placeholder {
 			color: transparent;
@@ -438,25 +440,33 @@
 
 <body>
 
-	<div id="loading" class="loading-overlay" style="display:none;">
+	<!-- 초기 인증 체크 및 통신 로딩 스피너 -->
+	<div id="loading" class="loading-overlay">
 		<div class="text-center">
 			<div class="spinner-border text-light mb-2" role="status" style="width: 2.5rem; height: 2.5rem;"></div>
-			<div id="loading-text" class="fw-bold">클라우드 데이터 동기화 중...</div>
+			<div id="loading-text" class="fw-bold">보안 인증 상태 확인 중...</div>
 		</div>
 	</div>
 
-	<!-- 🔒 비밀번호 잠금 화면 -->
-	<div id="auth-screen" class="auth-container">
+	<!-- 🔒 비밀번호 잠금 화면 (초기 로딩 시 display: none 유지하여 깜빡임 제거) -->
+	<div id="auth-screen" class="auth-container" style="display: none;">
 		<div class="auth-card">
 			<div class="mb-3 fs-1 text-primary"><i class="fas fa-shield-alt"></i></div>
 			<h4 class="fw-bold mb-2">외화 투자 대시보드</h4>
 			<p class="text-muted small mb-4">접속 비밀번호를 입력해 주세요.</p>
-			<div class="mb-3">
-				<input type="password" id="site-password" class="form-control form-control-lg text-center fw-bold"
-					placeholder="비밀번호 입력" autofocus inputmode="numeric" autocomplete="current-password"
-					onkeyup="if(window.event.keyCode==13){loginWithPassword()}">
-			</div>
-			<button class="btn btn-primary w-100 py-2 fw-bold rounded-3" onclick="loginWithPassword()">접속하기</button>
+
+			<!-- 표준 form 및 브라우저 비밀번호 저장 연동을 위한 숨김 username 필드 -->
+			<form id="auth-form" onsubmit="event.preventDefault(); loginWithPassword();" autocomplete="on">
+				<input type="text" name="username" value="admin" autocomplete="username" style="display:none;"
+					aria-hidden="true" tabindex="-1">
+
+				<div class="mb-3">
+					<input type="password" id="site-password" name="password"
+						class="form-control form-control-lg text-center fw-bold" placeholder="비밀번호 입력" autofocus
+						inputmode="numeric" autocomplete="current-password" required>
+				</div>
+				<button type="submit" id="login-btn" class="btn btn-primary w-100 py-2 fw-bold rounded-3">접속하기</button>
+			</form>
 		</div>
 	</div>
 
@@ -895,7 +905,7 @@
 	<script type="module">
 		import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 		import {
-			getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDoc, setDoc, query, orderBy, enableIndexedDbPersistence
+			getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDoc, setDoc, query, orderBy
 		} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 		import {
 			getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
@@ -914,12 +924,6 @@
 		const db = getFirestore(app);
 		const auth = getAuth(app);
 
-		try {
-			enableIndexedDbPersistence(db);
-		} catch (err) {
-			console.warn("오프라인 지속성 경고:", err.code);
-		}
-
 		// 1단계에서 생성한 가상 이메일 계정 (실제 이메일이 아니므로 깃허브 공개되어도 안전함)
 		const AUTH_ACCOUNT_EMAIL = "admin@forex.local";
 
@@ -929,7 +933,8 @@
 
 		// 🔑 비밀번호 검증 로그인 함수
 		window.loginWithPassword = async function () {
-			const pwd = document.getElementById('site-password').value;
+			const pwdInput = document.getElementById('site-password');
+			const pwd = pwdInput.value;
 			if (!pwd) {
 				Swal.fire({ icon: 'warning', title: '비밀번호를 입력하세요.', confirmButtonText: '확인' });
 				return;
@@ -939,7 +944,7 @@
 			try {
 				await signInWithEmailAndPassword(auth, AUTH_ACCOUNT_EMAIL, pwd);
 				hideLoading();
-				document.getElementById('site-password').value = '';
+				// 로그인 성공 시 브라우저가 자격증명을 캐시하도록 즉시 지우지 않거나 자동 폼 완료 유도
 			} catch (e) {
 				hideLoading();
 				Swal.fire({
@@ -948,7 +953,7 @@
 					text: '비밀번호가 올바르지 않습니다.',
 					confirmButtonText: '확인'
 				});
-				document.getElementById('site-password').value = '';
+				pwdInput.value = '';
 			}
 		};
 
@@ -958,9 +963,11 @@
 			location.reload();
 		};
 
-		// 인증 상태 실시간 감지
+		// 인증 상태 실시간 감지 (선 검증 후 필요한 화면만 노출하여 깜빡임 제거)
 		onAuthStateChanged(auth, (user) => {
+			hideLoading();
 			if (user) {
+				// 인증 상태: 로그인 창 없이 바로 메인 대시보드 표시
 				document.getElementById('auth-screen').style.display = 'none';
 				document.getElementById('main-content').style.display = 'block';
 
@@ -969,16 +976,16 @@
 				}
 				refreshCurrentRates();
 			} else {
-				// 🔒 미인증 상태: 잠금 화면 노출 후 비밀번호 입력창에 즉시 포커스
-				document.getElementById('auth-screen').style.display = 'flex';
+				// 미인증 상태: 메인 숨김 후 로그인 화면 오픈 & 자동 포커스
 				document.getElementById('main-content').style.display = 'none';
+				document.getElementById('auth-screen').style.display = 'flex';
 
 				setTimeout(() => {
 					const pwdInput = document.getElementById('site-password');
 					if (pwdInput) {
 						pwdInput.focus();
 					}
-				}, 50);
+				}, 60);
 			}
 		});
 	</script>
