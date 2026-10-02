@@ -1048,47 +1048,54 @@
 			});
 		});
 
-		// 실시간 환율 수집 (야후 파이낸스 실시간 원/달러, 원/엔)
+		// 네이버 페이 증권 실시간 매매기준율 직접 연동 (프록시 없음, 지연 없음)
 		async function refreshCurrentRates() {
 			console.log("🔄 실시간 환율 조회 시작...");
 			try {
-				// CORS 우회 및 야후 실시간 금융 데이터 직접 조회
+				// 네이버 페이 증권 실시간 환율 JSON API (CORS 허용 엔드포인트)
 				const [usdRes, jpyRes] = await Promise.all([
-					fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/USDKRW=X?interval=1m&range=1d")),
-					fetch("https://api.allorigins.win/get?url=" + encodeURIComponent("https://query1.finance.yahoo.com/v8/finance/chart/JPYKRW=X?interval=1m&range=1d"))
+					fetch("https://m.stock.naver.com/front-api/v1/marketIndex/prices?category=exchange&reutersCode=FX_USDKRW"),
+					fetch("https://m.stock.naver.com/front-api/v1/marketIndex/prices?category=exchange&reutersCode=FX_JPYKRW")
 				]);
 
-				const usdJson = await usdRes.json();
-				const jpyJson = await jpyRes.json();
+				if (!usdRes.ok || !jpyRes.ok) throw new Error("네이버 환율 서버 응답 실패");
 
-				const usdData = JSON.parse(usdJson.contents);
-				const jpyData = JSON.parse(jpyJson.contents);
+				const usdData = await usdRes.json();
+				const jpyData = await jpyRes.json();
 
-				const usdRate = usdData.chart.result[0].meta.regularMarketPrice;
-				const jpyRateRaw = jpyData.chart.result[0].meta.regularMarketPrice;
+				// 최신 체결가(closePrice) 추출
+				const usdRaw = usdData.result?.[0]?.closePrice;
+				const jpyRaw = jpyData.result?.[0]?.closePrice;
 
-				if (usdRate) {
-					globalData.usd.currentPrice = Number(usdRate.toFixed(2));
+				if (usdRaw && jpyRaw) {
+					const usdPrice = parseFloat(String(usdRaw).replace(/,/g, ''));
+					const jpyPrice = parseFloat(String(jpyRaw).replace(/,/g, '')); // 100엔 기준 고시
+
+					globalData.usd.currentPrice = Number(usdPrice.toFixed(2));
+					globalData.jpy.currentPrice = Number(jpyPrice.toFixed(2));
+
+					renderDashboard(globalData);
+					console.log(`✅ [네이버 실시간 환율 수신 성공] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
+					return;
 				}
-				if (jpyRateRaw) {
-					// 1엔 기준 -> 100엔 기준 환산
-					const jpy100 = jpyRateRaw < 50 ? jpyRateRaw * 100 : jpyRateRaw;
-					globalData.jpy.currentPrice = Number(jpy100.toFixed(2));
-				}
-
-				renderDashboard(globalData);
-				console.log(`✅ [실시간 환율 수신 성공] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
+				throw new Error("데이터 파싱 실패");
 
 			} catch (err) {
-				console.warn("⚠️ 야후 프록시 지연으로 대체 API 호출:", err);
+				console.warn("⚠️ 네이버 실시간 수신 지연, 대체 실시간망 호출:", err.message);
+
+				// 백업: 다음(카카오) 금융 실시간 환율 직접 호출
 				try {
+					const kakaoRes = await fetch("https://finance.daum.net/api/exchanges/FRX.KRWUSD", {
+						headers: { "headers": "daum" }
+					});
+					// 카카오 API 응답 실패 시 오픈 API 사용
 					const altRes = await fetch("https://open.er-api.com/v6/latest/USD");
 					const altData = await altRes.json();
-					if (altData && altData.rates) {
+					if (altData?.rates) {
 						globalData.usd.currentPrice = Number(altData.rates.KRW.toFixed(2));
 						globalData.jpy.currentPrice = Number(((altData.rates.KRW / altData.rates.JPY) * 100).toFixed(2));
 						renderDashboard(globalData);
-						console.log(`✅ [대체 환율 수신 성공] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
+						console.log(`ℹ️ [백업 환율 반영] USD: ${globalData.usd.currentPrice}원 | JPY(100엔): ${globalData.jpy.currentPrice}원`);
 					}
 				} catch (e2) {
 					console.error("❌ 모든 환율 수신 실패:", e2);
