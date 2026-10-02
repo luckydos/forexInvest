@@ -951,7 +951,7 @@
 			location.reload();
 		};
 
-		// 인증 상태 실시간 감지 (한 번 로그인하면 스마트폰에서 계속 유지)
+		// 인증 상태 실시간 감지
 		onAuthStateChanged(auth, (user) => {
 			if (user) {
 				document.getElementById('auth-screen').style.display = 'none';
@@ -962,8 +962,16 @@
 				}
 				refreshCurrentRates();
 			} else {
+				// 🔒 미인증 상태: 잠금 화면 노출 후 비밀번호 입력창에 즉시 포커스
 				document.getElementById('auth-screen').style.display = 'flex';
 				document.getElementById('main-content').style.display = 'none';
+
+				setTimeout(() => {
+					const pwdInput = document.getElementById('site-password');
+					if (pwdInput) {
+						pwdInput.focus();
+					}
+				}, 50);
 			}
 		});
 	</script>
