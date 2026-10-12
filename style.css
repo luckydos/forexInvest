@@ -1,0 +1,389 @@
+@charset "UTF-8";
+
+body {
+	font-family: 'Noto Sans KR', sans-serif;
+	background-color: #f4f6f9;
+	color: #333;
+	-webkit-text-size-adjust: none;
+}
+
+.nav-tabs {
+	border-bottom: 2px solid #dee2e6;
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	-ms-overflow-style: none;
+	scrollbar-width: none;
+}
+
+.nav-tabs .nav-item {
+	flex: 1;
+	min-width: auto;
+	text-align: center;
+}
+
+.nav-tabs .nav-link {
+	color: #555;
+	font-weight: 500;
+	padding: 12px 4px;
+	border: none;
+	border-bottom: 3px solid transparent;
+	font-size: 0.95rem;
+	white-space: nowrap;
+	width: 100%;
+	display: block;
+}
+
+.nav-tabs .nav-link.active {
+	font-weight: 700;
+	color: #0d6efd;
+	border-bottom: 3px solid #0d6efd;
+	background: rgba(13, 110, 253, 0.06) !important;
+}
+
+.nav-tabs::-webkit-scrollbar {
+	display: none !important;
+	width: 0 !important;
+	height: 0 !important;
+	background: transparent !important;
+}
+
+.card-custom {
+	border: none;
+	border-radius: 12px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+	margin-bottom: 15px;
+}
+
+/* ================== 2×2 그리드 매트릭스 요약 카드 ================== */
+.matrix-summary-card {
+	background: #ffffff;
+	border-radius: 16px;
+	border: 1px solid #e9ecef;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+	padding: 16px 18px;
+	margin-bottom: 18px;
+}
+
+.matrix-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding-bottom: 12px;
+	border-bottom: 1px solid #f1f3f5;
+	margin-bottom: 12px;
+}
+
+.matrix-asset-title {
+	font-size: 1.15rem;
+	font-weight: 700;
+	color: #212529;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* 환율 출처 및 시각 인라인 뱃지 */
+.source-badge {
+	font-size: 0.75rem;
+	font-weight: 600;
+	padding: 4px 10px;
+	border-radius: 20px;
+	display: inline-flex;
+	align-items: center;
+	white-space: nowrap;
+	/* 줄바꿈 방지 */
+	background: #f8f9fa;
+	color: #6c757d;
+	border: 1px solid #e9ecef;
+}
+
+.source-badge.badge-yahoo {
+	background: #eef9f2;
+	color: #198754;
+	border-color: #cceedf;
+}
+
+.source-badge.badge-backup {
+	background: #fff8e6;
+	color: #d97706;
+	border-color: #fde68a;
+}
+
+/* app.js에서 이모지를 직접 출력하므로 중복 점 애니메이션 숨김 처리 */
+.badge-pulse {
+	display: none !important;
+}
+
+.source-badge.badge-backup .badge-pulse {
+	background: #d97706;
+}
+
+/* 2×2 그리드 영역 */
+.matrix-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	row-gap: 12px;
+	column-gap: 16px;
+}
+
+.matrix-cell {
+	display: flex;
+	flex-direction: column;
+}
+
+.matrix-cell .cell-label {
+	font-size: 0.78rem;
+	color: #868e96;
+	font-weight: 500;
+	margin-bottom: 3px;
+	letter-spacing: -0.02em;
+}
+
+.matrix-cell .cell-value {
+	font-size: 1.05rem;
+	font-weight: 700;
+	color: #212529;
+	letter-spacing: -0.02em;
+	min-height: 24px;
+	display: flex;
+	align-items: center;
+}
+
+/* ================== 스켈레톤 로딩 (Skeleton Pulse) ================== */
+.skeleton-loading {
+	background: linear-gradient(90deg, #eceff1 25%, #f8f9fa 50%, #eceff1 75%);
+	background-size: 200% 100%;
+	animation: skeleton-shimmer 1.4s ease-in-out infinite;
+	border-radius: 6px;
+	color: transparent !important;
+	user-select: none;
+	display: inline-block;
+	min-width: 75px;
+	height: 20px;
+}
+
+@keyframes skeleton-shimmer {
+	0% {
+		background-position: 200% 0;
+	}
+
+	100% {
+		background-position: -200% 0;
+	}
+}
+
+/* ================== 실현손익 카드 ================== */
+.card-realized-profit {
+	background: white;
+	border-radius: 14px;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+}
+
+.card-realized-profit.all {
+	border-left: 5px solid #198754;
+}
+
+.card-realized-profit.usd {
+	border-left: 5px solid #0d6efd;
+}
+
+.card-realized-profit.jpy {
+	border-left: 5px solid #dc3545;
+}
+
+.profit-title-text {
+	font-size: 0.85rem;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	display: flex;
+	align-items: center;
+}
+
+.profit-value-text {
+	font-size: calc(1.3rem + 0.3vw);
+	font-weight: 700;
+	line-height: 1.2;
+	margin-top: 6px;
+}
+
+/* ================== 차수별 상태 칩 & 액션 버튼 (일체화) ================== */
+.badge-status-profit {
+	height: 28px;
+	background: #fff0f0;
+	color: #e03131;
+	border: 1px solid #ffc9c9;
+	padding: 0 10px;
+	font-weight: 700;
+	border-radius: 30px;
+	font-size: 0.8rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	letter-spacing: -0.02em;
+}
+
+.badge-status-hold {
+	height: 28px;
+	background-color: #f1f3f5;
+	color: #495057;
+	border: 1px solid #dee2e6;
+	padding: 0 10px;
+	font-weight: 600;
+	border-radius: 30px;
+	font-size: 0.8rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.btn-sell-action {
+	height: 32px;
+	padding: 0 10px;
+	font-weight: 700;
+	font-size: 0.78rem;
+	/* 모바일 폭에 맞춘 최적 크기 */
+	white-space: nowrap;
+	/* 글자 줄바꿈 절대 방지 */
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	background: #dc3545;
+	color: #fff;
+	border: none;
+	line-height: 1;
+}
+
+.btn-sell-action:hover {
+	background: #bb2d3b;
+	color: #fff;
+}
+
+.btn-action-icon {
+	height: 32px;
+	width: 32px;
+	padding: 0;
+	font-size: 0.8rem;
+	border-radius: 8px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+/* 모바일 카드 스타일 */
+.mobile-history-list {
+	display: none;
+}
+
+.mobile-record-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 16px;
+	margin-bottom: 14px;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+	border: 1px solid #eef2f5;
+	transition: all 0.2s ease;
+}
+
+.mobile-record-card.profit-active {
+	background-color: #fffdfd;
+	border-left: 5px solid #dc3545 !important;
+}
+
+.profit-up {
+	color: #dc3545 !important;
+	font-weight: bold;
+}
+
+.profit-down {
+	color: #0d6efd !important;
+	font-weight: bold;
+}
+
+.stock-up {
+	color: #dc3545 !important;
+	font-weight: bold;
+}
+
+.stock-down {
+	color: #0d6efd !important;
+	font-weight: bold;
+}
+
+.stock-stable {
+	color: #6c757d !important;
+}
+
+.loading-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.4);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999;
+	font-size: 1.1rem;
+	color: #fff;
+}
+
+.auth-container {
+	min-height: 80vh;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.auth-card {
+	background: #fff;
+	border-radius: 16px;
+	padding: 35px 25px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+	max-width: 380px;
+	width: 100%;
+	text-align: center;
+}
+
+#site-password {
+	letter-spacing: 0.15em;
+}
+
+#site-password:focus::placeholder {
+	color: transparent;
+}
+
+@media (max-width: 1199px) {
+	.desktop-table-container {
+		display: none;
+	}
+
+	.mobile-history-list {
+		display: block;
+	}
+
+	.matrix-summary-card {
+		padding: 14px;
+		margin-bottom: 14px;
+	}
+
+	.matrix-asset-title {
+		font-size: 1.1rem;
+	}
+
+	.matrix-cell .cell-value {
+		font-size: 0.98rem;
+	}
+
+	.nav-tabs .nav-link {
+		font-size: 0.84rem;
+		padding: 10px 2px;
+		letter-spacing: -0.03em;
+	}
+}

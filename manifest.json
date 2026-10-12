@@ -1,0 +1,20 @@
+{
+	"name": "외환 투자 관리기 (Forex Invest)",
+	"short_name": "ForexInvest",
+	"start_url": "./index.html",
+	"display": "standalone",
+	"background_color": "#f4f6f9",
+	"theme_color": "#0d6efd",
+	"icons": [
+		{
+			"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230f172a'/><text x='96' y='115' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='72' fill='%2338bdf8'>FX</text></svg>",
+			"sizes": "192x192",
+			"type": "image/svg+xml"
+		},
+		{
+			"src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%230f172a'/><text x='256' y='305' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='190' fill='%2338bdf8'>FX</text></svg>",
+			"sizes": "512x512",
+			"type": "image/svg+xml"
+		}
+	]
+}
