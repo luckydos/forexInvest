@@ -63,7 +63,7 @@ body {
 	border-radius: 16px;
 	border: 1px solid #e9ecef;
 	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-	padding: 16px 18px;
+	padding: 16px 18px 14px 18px;
 	margin-bottom: 18px;
 }
 
@@ -94,7 +94,6 @@ body {
 	display: inline-flex;
 	align-items: center;
 	white-space: nowrap;
-	/* 줄바꿈 방지 */
 	background: #f8f9fa;
 	color: #6c757d;
 	border: 1px solid #e9ecef;
@@ -112,7 +111,6 @@ body {
 	border-color: #fde68a;
 }
 
-/* app.js에서 이모지를 직접 출력하므로 중복 점 애니메이션 숨김 처리 */
 .badge-pulse {
 	display: none !important;
 }
@@ -150,6 +148,53 @@ body {
 	min-height: 24px;
 	display: flex;
 	align-items: center;
+}
+
+/* ================== 하단 전폭 총 평가손익 바 ================== */
+.matrix-profit-footer {
+	margin-top: 14px;
+	padding-top: 10px;
+	border-top: 1px dashed #e9ecef;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: #fbfcfd;
+	border-radius: 8px;
+	padding: 8px 12px;
+}
+
+.profit-footer-label {
+	font-size: 0.85rem;
+	font-weight: 600;
+	color: #495057;
+	display: flex;
+	align-items: center;
+}
+
+.profit-footer-value {
+	font-size: 1.02rem;
+	font-weight: 700;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	letter-spacing: -0.02em;
+}
+
+.profit-footer-rate {
+	font-size: 0.85rem;
+	font-weight: 600;
+}
+
+.profit-up {
+	color: #dc3545 !important;
+}
+
+.profit-down {
+	color: #0d6efd !important;
+}
+
+.profit-zero {
+	color: #6c757d !important;
 }
 
 /* ================== 스켈레톤 로딩 (Skeleton Pulse) ================== */
@@ -209,22 +254,8 @@ body {
 	margin-top: 6px;
 }
 
-/* ================== 차수별 상태 칩 & 액션 버튼 (일체화) ================== */
-.badge-status-profit {
-	height: 28px;
-	background: #fff0f0;
-	color: #e03131;
-	border: 1px solid #ffc9c9;
-	padding: 0 10px;
-	font-weight: 700;
-	border-radius: 30px;
-	font-size: 0.8rem;
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	letter-spacing: -0.02em;
-}
-
+/* ================== 차수별 포지션 칩 & 통합 버튼 ================== */
+/* 1) 보유 중 정적 뱃지 */
 .badge-status-hold {
 	height: 28px;
 	background-color: #f1f3f5;
@@ -237,35 +268,43 @@ body {
 	display: inline-flex;
 	align-items: center;
 	gap: 4px;
+	white-space: nowrap;
 }
 
-.btn-sell-action {
-	height: 32px;
-	padding: 0 10px;
+/* 2) PC / 모바일 공용 인터랙티브 '익절 팔기' 통합 액션 버튼 */
+.btn-position-sell-action {
+	height: 29px;
+	background: #fff0f0;
+	color: #dc3545;
+	border: 1px solid #ffb8b8;
+	padding: 0 12px;
 	font-weight: 700;
-	font-size: 0.78rem;
-	/* 모바일 폭에 맞춘 최적 크기 */
-	white-space: nowrap;
-	/* 글자 줄바꿈 절대 방지 */
-	border-radius: 8px;
+	border-radius: 30px;
+	font-size: 0.8rem;
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 3px;
+	gap: 4px;
+	letter-spacing: -0.02em;
+	white-space: nowrap;
+	cursor: pointer;
+	box-shadow: 0 2px 4px rgba(220, 53, 69, 0.1);
+	transition: all 0.15s ease-in-out;
+}
+
+.btn-position-sell-action:hover,
+.btn-position-sell-action:active {
 	background: #dc3545;
-	color: #fff;
-	border: none;
-	line-height: 1;
+	color: #ffffff;
+	border-color: #dc3545;
+	box-shadow: 0 3px 8px rgba(220, 53, 69, 0.25);
+	transform: translateY(-1px);
 }
 
-.btn-sell-action:hover {
-	background: #bb2d3b;
-	color: #fff;
-}
-
+/* 관리 열 아이콘 전용 버튼 */
 .btn-action-icon {
-	height: 32px;
-	width: 32px;
+	height: 30px;
+	width: 30px;
 	padding: 0;
 	font-size: 0.8rem;
 	border-radius: 8px;
@@ -293,16 +332,6 @@ body {
 .mobile-record-card.profit-active {
 	background-color: #fffdfd;
 	border-left: 5px solid #dc3545 !important;
-}
-
-.profit-up {
-	color: #dc3545 !important;
-	font-weight: bold;
-}
-
-.profit-down {
-	color: #0d6efd !important;
-	font-weight: bold;
 }
 
 .stock-up {
@@ -379,6 +408,23 @@ body {
 
 	.matrix-cell .cell-value {
 		font-size: 0.98rem;
+	}
+
+	.matrix-profit-footer {
+		padding: 7px 10px;
+		margin-top: 12px;
+	}
+
+	.profit-footer-label {
+		font-size: 0.8rem;
+	}
+
+	.profit-footer-value {
+		font-size: 0.95rem;
+	}
+
+	.profit-footer-rate {
+		font-size: 0.8rem;
 	}
 
 	.nav-tabs .nav-link {

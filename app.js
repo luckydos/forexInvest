@@ -132,7 +132,6 @@ window.refreshCurrentRates = async function () {
 			globalData.usd.currentPrice = Number(usdRate.toFixed(2));
 			globalData.jpy.currentPrice = Number(jpyRate.toFixed(2));
 
-			// GAS의 실제 timestamp에서 HH:mm 추출
 			let timeStr = "";
 			if (data.timestamp) {
 				const match = data.timestamp.match(/(\d{2}:\d{2})/);
@@ -171,7 +170,7 @@ window.refreshCurrentRates = async function () {
 			}
 		} catch (e2) {
 			console.error("❌ 환율 수신 전체 실패:", e2);
-			isRateLoaded = true; // 오류 시에도 기존 캐시 수치로 복구
+			isRateLoaded = true;
 			renderDashboard(globalData);
 		}
 	}
@@ -290,7 +289,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링 (2×2 매트릭스 및 스켈레톤 동기화 적용)
+// 💵 달러 / 엔화 렌더링 (PC / 모바일 통합 포지션 버튼 적용)
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -327,16 +326,14 @@ function renderCurrencySection(type, currencyData) {
 			const profitRate = totalBuy > 0 ? ((currentProfit / totalBuy) * 100).toFixed(2) : "0.00";
 			const isProfit = currentProfit > 0;
 
-			// 스켈레톤 동기화: 환율 로딩 중일 때는 미니 스켈레톤 바 노출
-			let positionBadgeHtml = "";
-			let actionBtnHtml = "";
+			// PC 및 모바일 공용 포지션 버튼 / 뱃지
+			let positionActionHtml = "";
 			let profitAmtText = "";
 			let profitRateText = "";
 			let valuationText = "";
 
 			if (!isRateLoaded) {
-				positionBadgeHtml = `<span class="skeleton-loading" style="width: 85px; height: 26px;"></span>`;
-				actionBtnHtml = `<span class="skeleton-loading" style="width: 90px; height: 28px;"></span>`;
+				positionActionHtml = `<span class="skeleton-loading" style="width: 90px; height: 28px;"></span>`;
 				profitAmtText = `<span class="skeleton-loading" style="width: 60px;"></span>`;
 				profitRateText = `<span class="skeleton-loading" style="width: 45px;"></span>`;
 				valuationText = `<span class="skeleton-loading" style="width: 70px;"></span>`;
@@ -346,18 +343,20 @@ function renderCurrencySection(type, currencyData) {
 				profitRateText = (currentProfit >= 0 ? '+' : '') + profitRate + '%';
 
 				if (isProfit) {
-					positionBadgeHtml = `<span class="badge-status-profit">🔥 +${profitRate}% 익절 가능</span>`;
-					actionBtnHtml = `<button type="button" class="btn btn-sell-action me-1" onclick="executeSale('${type}', '${item.id}', ${current})">💰 팔기</button>`;
+					// PC & 모바일 공통: 익절 가능한 경우 클릭하여 바로 매도하는 통합 버튼
+					positionActionHtml = `<button type="button" class="btn-position-sell-action" onclick="executeSale('${type}', '${item.id}', ${current})">🔥 +${profitRate}% 팔기 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
-					positionBadgeHtml = `<span class="badge-status-hold">⏳ ${profitRate}% 보유 중</span>`;
-					actionBtnHtml = ''; // 보유 건은 매도 유도 버튼을 숨겨 오작동 방지
+					// 보유 중인 경우 상태 뱃지만 유지
+					positionActionHtml = `<span class="badge-status-hold">⏳ ${profitRate}% 보유 중</span>`;
 				}
 			}
 
 			const stockClass = !isRateLoaded ? '' : (currentProfit > 0 ? 'stock-up' : (currentProfit < 0 ? 'stock-down' : 'stock-stable'));
+
+			// 관리 열은 수정 및 삭제 아이콘만 깔끔하게 구성
 			const editTools = `
-				<button type="button" class="btn btn-outline-primary btn-action-icon" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button>
-				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+				<button type="button" class="btn btn-outline-primary btn-action-icon" title="수정" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button>
+				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
 			// PC 테이블 행
@@ -373,8 +372,8 @@ function renderCurrencySection(type, currencyData) {
 				<td>${valuationText}</td>
 				<td class="${stockClass}">${profitAmtText}</td>
 				<td class="${stockClass}">${profitRateText}</td>
-				<td class="text-center">${positionBadgeHtml}</td>
-				<td class="text-center d-flex justify-content-center align-items-center">${actionBtnHtml}${editTools}</td>
+				<td class="text-center">${positionActionHtml}</td>
+				<td class="text-center d-flex justify-content-center align-items-center">${editTools}</td>
 			`;
 			tbody.appendChild(tr);
 
@@ -386,7 +385,7 @@ function renderCurrencySection(type, currencyData) {
 					<span class="fw-bold text-secondary fs-6 d-flex align-items-center">
 						No.${item.no} <span class="ms-2">${getFinanceBadge(safeFinance)}</span>
 					</span>
-					<div>${positionBadgeHtml}</div>
+					<div>${positionActionHtml}</div>
 				</div>
 				<div class="row g-2 small text-dark mb-3">
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold">${safeDateText.replace(' ', '<br>')}</div></div>
@@ -401,14 +400,14 @@ function renderCurrencySection(type, currencyData) {
 						<span class="${stockClass} fw-bold">${profitAmtText}</span>
 						<span class="${stockClass} small">(${profitRateText})</span>
 					</div>
-					<div class="d-flex align-items-center">${actionBtnHtml}${editTools}</div>
+					<div class="d-flex align-items-center">${editTools}</div>
 				</div>
 			`;
 			mDiv.appendChild(mCard);
 		});
 	}
 
-	// 2. 상단 2×2 매트릭스 요약 카드 계산 및 바인딩
+	// 2. 상단 요약 카드 계산 및 바인딩
 	let avgBuyPrice = 0;
 	if (sumForeignAmount > 0) {
 		avgBuyPrice = type === 'jpy' ? (sumTotalBuy / sumForeignAmount) * 100 : (sumTotalBuy / sumForeignAmount);
@@ -419,22 +418,37 @@ function renderCurrencySection(type, currencyData) {
 	document.getElementById(type + '-sum-krw').innerText = sumTotalBuy.toLocaleString() + '원';
 	document.getElementById(type + '-avg-buy').innerText = avgBuyPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
 
-	// 환율 로딩 여부에 따른 상단 스켈레톤 제어
 	const valEl = document.getElementById(type + '-current-valuation');
 	const rateEl = document.getElementById(type + '-current-rate');
 	const badgeEl = document.getElementById(type + '-rate-badge');
 	const badgeTextEl = document.getElementById(type + '-rate-source-text');
+	const profitAmtEl = document.getElementById(type + '-total-profit-amt');
+	const profitRateEl = document.getElementById(type + '-total-profit-rate');
+	const profitContainer = document.getElementById(type + '-total-profit-container');
 
 	if (!isRateLoaded) {
 		valEl.innerHTML = `<span class="skeleton-loading" style="width: 100px;"></span>`;
 		rateEl.innerHTML = `<span class="skeleton-loading" style="width: 80px;"></span>`;
 		badgeEl.className = 'source-badge';
 		badgeTextEl.innerText = "환율 확인 중...";
+		profitAmtEl.innerHTML = `<span class="skeleton-loading" style="width: 85px;"></span>`;
+		profitRateEl.innerHTML = `<span class="skeleton-loading" style="width: 50px;"></span>`;
+		profitContainer.className = 'profit-footer-value';
 	} else {
 		valEl.innerText = Math.round(sumTotalValuation).toLocaleString() + '원';
 		rateEl.innerText = current.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '원';
 		badgeEl.className = 'source-badge ' + (currentRateSource.source === 'yahoo' ? 'badge-yahoo' : 'badge-backup');
 		badgeTextEl.innerText = currentRateSource.badgeText;
+
+		// 총 평가손익 바 계산
+		const totalProfit = Math.round(sumTotalValuation - sumTotalBuy);
+		const totalProfitRate = sumTotalBuy > 0 ? ((totalProfit / sumTotalBuy) * 100).toFixed(2) : "0.00";
+		const sign = totalProfit > 0 ? '+' : '';
+
+		profitAmtEl.innerText = `${sign}${totalProfit.toLocaleString()}원`;
+		profitRateEl.innerText = `(${sign}${totalProfitRate}%)`;
+
+		profitContainer.className = 'profit-footer-value ' + (totalProfit > 0 ? 'profit-up' : (totalProfit < 0 ? 'profit-down' : 'profit-zero'));
 	}
 }
 
@@ -497,7 +511,7 @@ function processAndRenderSoldData() {
 				<td>${item.sellPrice.toLocaleString()}원</td>
 				<td>${item.totalSell.toLocaleString()}원</td>
 				<td class="${profitClass} fw-bold">${profitSign}${item.profit.toLocaleString()}원</td>
-				<td class="text-center"><button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></td>
+				<td class="text-center"><button type="button" class="btn btn-outline-danger btn-action-icon" title="삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></td>
 			`;
 			tbody.appendChild(tr);
 
@@ -510,7 +524,7 @@ function processAndRenderSoldData() {
 					<span class="fw-bold text-dark d-flex align-items-center">
 						<span class="text-muted small me-2">No.${displayNo}</span> ${getFinanceBadge(safeFinance)} <span class="ms-1">${textBadgeHtml}</span>
 					</span>
-					<button type="button" class="btn btn-outline-danger btn-action-icon" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+					<button type="button" class="btn btn-outline-danger btn-action-icon" title="삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 				</div>
 				<div class="row g-2 small text-dark mb-3">
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold">${safeBuyDate.replace(' ', '<br>')}</div></div>
