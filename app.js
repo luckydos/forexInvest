@@ -289,7 +289,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링 (PC / 모바일 통합 포지션 버튼 적용)
+// 💵 달러 / 엔화 렌더링
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -343,17 +343,14 @@ function renderCurrencySection(type, currencyData) {
 				profitRateText = (currentProfit >= 0 ? '+' : '') + profitRate + '%';
 
 				if (isProfit) {
-					// PC & 모바일 공통: 익절 가능한 경우 클릭하여 바로 매도하는 통합 버튼
 					positionActionHtml = `<button type="button" class="btn-position-sell-action" onclick="executeSale('${type}', '${item.id}', ${current})">🔥 +${profitRate}% 팔기 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
-					// 보유 중인 경우 상태 뱃지만 유지
 					positionActionHtml = `<span class="badge-status-hold">⏳ ${profitRate}% 보유 중</span>`;
 				}
 			}
 
 			const stockClass = !isRateLoaded ? '' : (currentProfit > 0 ? 'stock-up' : (currentProfit < 0 ? 'stock-down' : 'stock-stable'));
 
-			// 관리 열은 수정 및 삭제 아이콘만 깔끔하게 구성
 			const editTools = `
 				<button type="button" class="btn btn-outline-primary btn-action-icon" title="수정" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button>
 				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
@@ -373,7 +370,7 @@ function renderCurrencySection(type, currencyData) {
 				<td class="${stockClass}">${profitAmtText}</td>
 				<td class="${stockClass}">${profitRateText}</td>
 				<td class="text-center">${positionActionHtml}</td>
-				<td class="text-center d-flex justify-content-center align-items-center">${editTools}</td>
+				<td class="text-center"><div class="d-inline-flex justify-content-center align-items-center">${editTools}</div></td>
 			`;
 			tbody.appendChild(tr);
 
@@ -498,6 +495,12 @@ function processAndRenderSoldData() {
 			const safeBuyDate = escapeHtml(item.buyDate);
 			const safeSellDate = escapeHtml(item.sellDate);
 
+			// 관리 버튼 도구 (되돌리기 + 삭제)
+			const soldActionTools = `
+				<button type="button" class="btn btn-outline-warning btn-action-icon me-1 text-dark" title="보유 내역으로 되돌리기" onclick="restoreSoldRecord('${item.id}')"><i class="fas fa-undo"></i></button>
+				<button type="button" class="btn btn-outline-danger btn-action-icon" title="영구 삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+			`;
+
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
 				<td class="text-muted fw-bold">${displayNo}</td>
@@ -511,7 +514,7 @@ function processAndRenderSoldData() {
 				<td>${item.sellPrice.toLocaleString()}원</td>
 				<td>${item.totalSell.toLocaleString()}원</td>
 				<td class="${profitClass} fw-bold">${profitSign}${item.profit.toLocaleString()}원</td>
-				<td class="text-center"><button type="button" class="btn btn-outline-danger btn-action-icon" title="삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button></td>
+				<td class="text-center"><div class="d-inline-flex justify-content-center align-items-center">${soldActionTools}</div></td>
 			`;
 			tbody.appendChild(tr);
 
@@ -524,7 +527,7 @@ function processAndRenderSoldData() {
 					<span class="fw-bold text-dark d-flex align-items-center">
 						<span class="text-muted small me-2">No.${displayNo}</span> ${getFinanceBadge(safeFinance)} <span class="ms-1">${textBadgeHtml}</span>
 					</span>
-					<button type="button" class="btn btn-outline-danger btn-action-icon" title="삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+					<div class="d-flex align-items-center">${soldActionTools}</div>
 				</div>
 				<div class="row g-2 small text-dark mb-3">
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold">${safeBuyDate.replace(' ', '<br>')}</div></div>
@@ -643,6 +646,57 @@ window.executeSale = async function (type, docId, defaultPrice) {
 		} catch (err) {
 			hideLoading();
 			Swal.fire({ icon: 'error', title: '처리 오류', text: err.message, confirmButtonText: '확인' });
+		}
+	}
+};
+
+// ↩️ 실현손익 내역을 보유 상태로 되돌리기 (매도 취소)
+window.restoreSoldRecord = async function (docId) {
+	const result = await Swal.fire({
+		title: '보유 내역으로 되돌리기',
+		text: "이 기록을 실현 손익에서 제외하고, 원래의 투자 보유 탭으로 복구합니까?",
+		icon: 'question',
+		showCancelButton: true,
+		confirmButtonColor: '#ffc107',
+		cancelButtonColor: '#6c757d',
+		confirmButtonText: '네, 되돌리기',
+		cancelButtonText: '취소'
+	});
+
+	if (result.isConfirmed) {
+		showLoading("기록을 복구하는 중입니다...");
+		try {
+			const soldRef = window.fs.doc(window.db, "soldHistory", docId);
+			const soldSnap = await window.fs.getDoc(soldRef);
+			if (!soldSnap.exists()) throw new Error("해당 실현 손익 문서를 찾을 수 없습니다.");
+
+			const data = soldSnap.data();
+
+			await window.fs.addDoc(window.fs.collection(window.db, "investments"), {
+				type: data.type === '달러' ? 'usd' : 'jpy',
+				date: data.buyDate || formatDateTime(new Date()),
+				buyPrice: Number(data.buyPrice) || 0,
+				foreignAmount: Number(data.amount) || 0,
+				totalBuy: Number(data.totalBuy) || 0,
+				finance: data.finance || "",
+				memo: "보유중",
+				createdAt: data.createdAt || Date.now()
+			});
+
+			await window.fs.deleteDoc(soldRef);
+
+			hideLoading();
+			Swal.fire({
+				icon: 'success',
+				title: '복구 완료',
+				text: '원래 투자 보유 목록으로 안전하게 이동되었습니다.',
+				confirmButtonText: '확인',
+				timer: 2000,
+				timerProgressBar: true
+			});
+		} catch (err) {
+			hideLoading();
+			Swal.fire({ icon: 'error', title: '복구 실패', text: err.message, confirmButtonText: '확인' });
 		}
 	}
 };
