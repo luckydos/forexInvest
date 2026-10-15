@@ -289,7 +289,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링 (컬럼 정렬 통일 적용)
+// 💵 달러 / 엔화 렌더링
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -356,7 +356,7 @@ function renderCurrencySection(type, currencyData) {
 				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행: 가운데 정렬(No, 계좌, 일자, 포지션, 관리) 및 우측 정렬(숫자/금액)
+			// PC 테이블 행: 메타 정보 완전 중앙 정렬 + 금액 우측 정렬
 			const tr = document.createElement('tr');
 			if (isRateLoaded && isProfit) tr.style.backgroundColor = '#fffdfd';
 			tr.innerHTML = `
@@ -437,7 +437,6 @@ function renderCurrencySection(type, currencyData) {
 		badgeEl.className = 'source-badge ' + (currentRateSource.source === 'yahoo' ? 'badge-yahoo' : 'badge-backup');
 		badgeTextEl.innerText = currentRateSource.badgeText;
 
-		// 총 평가손익 바 계산
 		const totalProfit = Math.round(sumTotalValuation - sumTotalBuy);
 		const totalProfitRate = sumTotalBuy > 0 ? ((totalProfit / sumTotalBuy) * 100).toFixed(2) : "0.00";
 		const sign = totalProfit > 0 ? '+' : '';
@@ -449,7 +448,7 @@ function renderCurrencySection(type, currencyData) {
 	}
 }
 
-// 💰 실현 손익 처리 및 페이지네이션 (컬럼 정렬 통일 적용)
+// 💰 실현 손익 처리 및 페이지네이션
 function processAndRenderSoldData() {
 	const soldList = globalData.soldHistory || [];
 	let totalAccumulatedProfit = 0, usdAccumulatedProfit = 0, jpyAccumulatedProfit = 0;
@@ -489,15 +488,15 @@ function processAndRenderSoldData() {
 			const profitClass = item.profit > 0 ? 'stock-up' : (item.profit < 0 ? 'stock-down' : 'stock-stable');
 			const profitSign = item.profit >= 0 ? '+' : '';
 
-			// 개별 거래건 확정 수익률 계산
 			const buyTotal = Number(item.totalBuy) || 0;
 			const profitVal = Number(item.profit) || 0;
 			const profitRate = buyTotal > 0 ? ((profitVal / buyTotal) * 100).toFixed(2) : "0.00";
 			const rateText = `(${profitSign}${profitRate}%)`;
 
-			// 구분 뱃지 Flexbox 중앙 정렬 및 규격 동기화
+			// [시각적 중앙 정렬 완벽 보정 뱃지]
+			// 이모지 무게감을 감안하여 좌우 패딩을 미세 조율(좌10px, 우12px) 및 flexbox로 수직/수평 칼정렬
 			const badgeBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
-			const textBadgeHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 10px; font-size: 0.78rem; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; background-color: #ffffff; border: 1px solid ${badgeBorderColor}; color: ${badgeBorderColor}; letter-spacing: -0.02em;">${item.type === '달러' ? '💵 달러' : '💴 엔화'}</span>`;
+			const textBadgeHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 12px 0 10px; font-size: 0.8rem; font-weight: 700; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; background-color: #ffffff; border: 1px solid ${badgeBorderColor}; color: ${badgeBorderColor}; letter-spacing: -0.02em;"><span>${item.type === '달러' ? '💵' : '💴'}</span><span>${item.type}</span></span>`;
 
 			const safeFinance = escapeHtml(item.finance);
 			const safeBuyDate = escapeHtml(item.buyDate);
@@ -508,7 +507,7 @@ function processAndRenderSoldData() {
 				<button type="button" class="btn btn-outline-danger btn-action-icon" title="영구 삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행: 가운데 정렬(No, 계좌, 구분, 일자, 관리) 및 우측 정렬(금액/수량/환율)
+			// PC 테이블 행: 구분(text-center)과 금액(text-end) 완전 동기화
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
 				<td class="text-center text-muted fw-bold">${displayNo}</td>
