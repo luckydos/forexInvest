@@ -289,7 +289,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링
+// 💵 달러 / 엔화 렌더링 (컬럼 정렬 통일 적용)
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -356,19 +356,19 @@ function renderCurrencySection(type, currencyData) {
 				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행
+			// PC 테이블 행: 가운데 정렬(No, 계좌, 일자, 포지션, 관리) 및 우측 정렬(숫자/금액)
 			const tr = document.createElement('tr');
 			if (isRateLoaded && isProfit) tr.style.backgroundColor = '#fffdfd';
 			tr.innerHTML = `
-				<td class="text-muted fw-bold">${item.no}</td>
-				<td>${getFinanceBadge(safeFinance)}</td>
-				<td>${safeDateText}</td>
-				<td>${buyPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}원</td>
-				<td class="fw-bold">${unitIcon}${foreignAmount.toLocaleString()}</td>
-				<td>${totalBuy.toLocaleString()}원</td>
-				<td>${valuationText}</td>
-				<td class="${stockClass}">${profitAmtText}</td>
-				<td class="${stockClass}">${profitRateText}</td>
+				<td class="text-center text-muted fw-bold">${item.no}</td>
+				<td class="text-center">${getFinanceBadge(safeFinance)}</td>
+				<td class="text-center">${safeDateText}</td>
+				<td class="text-end">${buyPrice.toLocaleString(undefined, { maximumFractionDigits: 2 })}원</td>
+				<td class="text-end fw-bold">${unitIcon}${foreignAmount.toLocaleString()}</td>
+				<td class="text-end">${totalBuy.toLocaleString()}원</td>
+				<td class="text-end">${valuationText}</td>
+				<td class="text-end ${stockClass}">${profitAmtText}</td>
+				<td class="text-end ${stockClass}">${profitRateText}</td>
 				<td class="text-center">${positionActionHtml}</td>
 				<td class="text-center"><div class="d-inline-flex justify-content-center align-items-center">${editTools}</div></td>
 			`;
@@ -449,7 +449,7 @@ function renderCurrencySection(type, currencyData) {
 	}
 }
 
-// 💰 실현 손익 처리 및 페이지네이션 (구분 뱃지 슬림화 & 수익률 병기)
+// 💰 실현 손익 처리 및 페이지네이션 (컬럼 정렬 통일 적용)
 function processAndRenderSoldData() {
 	const soldList = globalData.soldHistory || [];
 	let totalAccumulatedProfit = 0, usdAccumulatedProfit = 0, jpyAccumulatedProfit = 0;
@@ -495,39 +495,38 @@ function processAndRenderSoldData() {
 			const profitRate = buyTotal > 0 ? ((profitVal / buyTotal) * 100).toFixed(2) : "0.00";
 			const rateText = `(${profitSign}${profitRate}%)`;
 
-			// [개선 1] 구분 뱃지 슬림화: 계좌 뱃지 높이와 어울리는 콤팩트 크기 적용 (가로 폭 절약)
+			// 구분 뱃지 Flexbox 중앙 정렬 및 규격 동기화
 			const badgeBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
-			const textBadgeHtml = `<span class="badge bg-white shadow-sm" style="border: 1px solid ${badgeBorderColor}; color: ${badgeBorderColor}; padding: 4px 8px; font-size: 0.78rem; font-weight: 700; border-radius: 20px;">${item.type === '달러' ? '💵 달러' : '💴 엔화'}</span>`;
+			const textBadgeHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 10px; font-size: 0.78rem; font-weight: 700; border-radius: 20px; display: inline-flex; align-items: center; justify-content: center; box-sizing: border-box; background-color: #ffffff; border: 1px solid ${badgeBorderColor}; color: ${badgeBorderColor}; letter-spacing: -0.02em;">${item.type === '달러' ? '💵 달러' : '💴 엔화'}</span>`;
 
 			const safeFinance = escapeHtml(item.finance);
 			const safeBuyDate = escapeHtml(item.buyDate);
 			const safeSellDate = escapeHtml(item.sellDate);
 
-			// 관리 버튼 도구 (되돌리기 + 삭제)
 			const soldActionTools = `
 				<button type="button" class="btn btn-outline-warning btn-action-icon me-1 text-dark" title="보유 내역으로 되돌리기" onclick="restoreSoldRecord('${item.id}')"><i class="fas fa-undo"></i></button>
 				<button type="button" class="btn btn-outline-danger btn-action-icon" title="영구 삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// [개선 2] 확정손익에 수익률 괄호 병기 (확보된 가로 폭 활용)
+			// PC 테이블 행: 가운데 정렬(No, 계좌, 구분, 일자, 관리) 및 우측 정렬(금액/수량/환율)
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
-				<td class="text-muted fw-bold">${displayNo}</td>
-				<td>${getFinanceBadge(safeFinance)}</td>
-				<td>${textBadgeHtml}</td>
-				<td>${safeBuyDate}</td>
-				<td>${item.buyPrice.toLocaleString()}원</td>
-				<td class="fw-bold">${item.amount.toLocaleString()}</td>
-				<td>${item.totalBuy.toLocaleString()}원</td>
-				<td>${safeSellDate}</td>
-				<td>${item.sellPrice.toLocaleString()}원</td>
-				<td>${item.totalSell.toLocaleString()}원</td>
-				<td class="${profitClass} fw-bold">${profitSign}${item.profit.toLocaleString()}원 <span class="small fw-normal" style="font-size:0.8rem;">${rateText}</span></td>
+				<td class="text-center text-muted fw-bold">${displayNo}</td>
+				<td class="text-center">${getFinanceBadge(safeFinance)}</td>
+				<td class="text-center">${textBadgeHtml}</td>
+				<td class="text-center">${safeBuyDate}</td>
+				<td class="text-end">${item.buyPrice.toLocaleString()}원</td>
+				<td class="text-end fw-bold">${item.amount.toLocaleString()}</td>
+				<td class="text-end">${item.totalBuy.toLocaleString()}원</td>
+				<td class="text-center">${safeSellDate}</td>
+				<td class="text-end">${item.sellPrice.toLocaleString()}원</td>
+				<td class="text-end">${item.totalSell.toLocaleString()}원</td>
+				<td class="text-end ${profitClass} fw-bold">${profitSign}${item.profit.toLocaleString()}원 <span class="small fw-normal" style="font-size:0.8rem;">${rateText}</span></td>
 				<td class="text-center"><div class="d-inline-flex justify-content-center align-items-center">${soldActionTools}</div></td>
 			`;
 			tbody.appendChild(tr);
 
-			// 모바일 전용 카드 하단 실현손익에도 수익률 병기
+			// 모바일 전용 카드
 			const cardBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
 			const mCard = document.createElement('div');
 			mCard.className = 'mobile-record-card';
