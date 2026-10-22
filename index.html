@@ -85,10 +85,9 @@
 
 		<div class="tab-content" id="investTabContent">
 
-			<!-- 💵 달러(USD) 2×2 매트릭스 요약 카드 -->
+			<!-- 💵 달러(USD) 요약 카드 -->
 			<div class="tab-pane fade show active" id="usd-page">
 				<div class="matrix-summary-card">
-					<!-- 1행: 헤더 인라인 (총 외화자산 & 출처 뱃지) -->
 					<div class="matrix-header">
 						<div class="matrix-asset-title">
 							<i class="fas fa-wallet text-primary"></i>
@@ -100,31 +99,25 @@
 						</div>
 					</div>
 
-					<!-- 2행: 2×2 비교 매트릭스 그리드 -->
 					<div class="matrix-grid">
-						<!-- 좌상: 매수원금 -->
 						<div class="matrix-cell">
 							<span class="cell-label">매수원금(환산)</span>
 							<span class="cell-value" id="usd-sum-krw">0원</span>
 						</div>
-						<!-- 우상: 현재평가 -->
 						<div class="matrix-cell">
 							<span class="cell-label">현재평가</span>
 							<span class="cell-value" id="usd-current-valuation">0원</span>
 						</div>
-						<!-- 좌하: 평균단가 -->
 						<div class="matrix-cell">
 							<span class="cell-label">평균단가</span>
 							<span class="cell-value text-primary" id="usd-avg-buy">0.00원</span>
 						</div>
-						<!-- 우하: 현재환율 -->
 						<div class="matrix-cell">
 							<span class="cell-label">현재환율</span>
 							<span class="cell-value text-dark" id="usd-current-rate">0.00원</span>
 						</div>
 					</div>
 
-					<!-- 3행: 하단 전폭 총 평가손익 바 -->
 					<div class="matrix-profit-footer" id="usd-profit-footer">
 						<div class="profit-footer-label">
 							<i class="fas fa-chart-line me-1"></i>총 평가손익
@@ -151,12 +144,12 @@
 									<th class="text-center" style="width: 100px;">계좌</th>
 									<th class="text-center" style="width: 155px;">매수일자</th>
 									<th class="text-end">매수환율(₩)</th>
-									<th class="text-end">매수수량</th>
+									<th class="text-end">외화금액($)</th>
 									<th class="text-end">매수금(₩)</th>
 									<th class="text-end">평가금(₩)</th>
 									<th class="text-end">수익금(₩)</th>
 									<th class="text-end">수익률(%)</th>
-									<th class="text-center" style="width: 135px;">투자포지션</th>
+									<th class="text-center" style="width: 140px;">투자포지션</th>
 									<th class="text-center" style="width: 90px;">관리</th>
 								</tr>
 							</thead>
@@ -167,10 +160,9 @@
 				</div>
 			</div>
 
-			<!-- 💴 엔화(JPY) 2×2 매트릭스 요약 카드 -->
+			<!-- 💴 엔화(JPY) 요약 카드 -->
 			<div class="tab-pane fade" id="jpy-page">
 				<div class="matrix-summary-card">
-					<!-- 1행: 헤더 인라인 (총 외화자산 & 출처 뱃지) -->
 					<div class="matrix-header">
 						<div class="matrix-asset-title">
 							<i class="fas fa-wallet text-danger"></i>
@@ -182,31 +174,25 @@
 						</div>
 					</div>
 
-					<!-- 2행: 2×2 비교 매트릭스 그리드 -->
 					<div class="matrix-grid">
-						<!-- 좌상: 매수원금 -->
 						<div class="matrix-cell">
 							<span class="cell-label">매수원금(환산)</span>
 							<span class="cell-value" id="jpy-sum-krw">0원</span>
 						</div>
-						<!-- 우상: 현재평가 -->
 						<div class="matrix-cell">
 							<span class="cell-label">현재평가</span>
 							<span class="cell-value" id="jpy-current-valuation">0원</span>
 						</div>
-						<!-- 좌하: 평균단가 -->
 						<div class="matrix-cell">
 							<span class="cell-label">평균단가</span>
 							<span class="cell-value text-danger" id="jpy-avg-buy">0.00원</span>
 						</div>
-						<!-- 우하: 현재환율 -->
 						<div class="matrix-cell">
 							<span class="cell-label">현재환율</span>
 							<span class="cell-value text-dark" id="jpy-current-rate">0.00원</span>
 						</div>
 					</div>
 
-					<!-- 3행: 하단 전폭 총 평가손익 바 -->
 					<div class="matrix-profit-footer" id="jpy-profit-footer">
 						<div class="profit-footer-label">
 							<i class="fas fa-chart-line me-1"></i>총 평가손익
@@ -233,12 +219,12 @@
 									<th class="text-center" style="width: 100px;">계좌</th>
 									<th class="text-center" style="width: 155px;">매수일자</th>
 									<th class="text-end">매수환율(₩)</th>
-									<th class="text-end">매수수량</th>
+									<th class="text-end">외화금액(¥)</th>
 									<th class="text-end">매수금(₩)</th>
 									<th class="text-end">평가금(₩)</th>
 									<th class="text-end">수익금(₩)</th>
 									<th class="text-end">수익률(%)</th>
-									<th class="text-center" style="width: 135px;">투자포지션</th>
+									<th class="text-center" style="width: 140px;">투자포지션</th>
 									<th class="text-center" style="width: 90px;">관리</th>
 								</tr>
 							</thead>
@@ -312,7 +298,7 @@
 									<th class="text-center" style="width: 90px;">구분</th>
 									<th class="text-center" style="width: 155px;">매수일자</th>
 									<th class="text-end">매수환율(₩)</th>
-									<th class="text-end">매수수량</th>
+									<th class="text-end">외화금액</th>
 									<th class="text-end">매수금(₩)</th>
 									<th class="text-center" style="width: 155px;">매도일자</th>
 									<th class="text-end">매도환율(₩)</th>
@@ -331,37 +317,44 @@
 				</div>
 			</div>
 
-			<!-- ⚙️ 설정 페이지 -->
+			<!-- ⚙️ 설정 페이지 (투자 환경 설정) -->
 			<div class="tab-pane fade" id="setting-page">
-				<div class="card card-custom p-3 bg-white" style="max-width: 550px; margin: 0 auto;">
-					<h6 class="fw-bold mb-3"><i class="fas fa-sliders-h me-1"></i>투자 운영 기준치 설정</h6>
+				<div class="card card-custom p-3 p-md-4 bg-white" style="max-width: 550px; margin: 0 auto;">
+					<h6 class="fw-bold mb-3"><i class="fas fa-sliders-h me-1 text-primary"></i>투자 환경 설정</h6>
 					<form id="settingForm">
 						<div class="mb-3">
-							<label class="form-label fw-bold text-primary small">💵 달러(USD)</label>
+							<label class="form-label fw-bold text-dark small mb-2">💵 기본 매수 외화금액 설정</label>
 							<div class="row g-2">
-								<div class="col-6"><label class="small text-muted">최초 매수 기준가</label><input type="number"
-										class="form-control" id="input-usd-base" step="0.01" required></div>
-								<div class="col-6"><label class="small text-muted">분할 단위 갭</label><input type="number"
-										class="form-control" id="input-usd-gap" step="0.01" required></div>
+								<div class="col-6">
+									<label class="small text-muted mb-1">달러 기본 외화금액 ($)</label>
+									<input type="number" class="form-control fw-bold" id="input-usd-amount" step="1"
+										required>
+								</div>
+								<div class="col-6">
+									<label class="small text-muted mb-1">엔화 기본 외화금액 (¥)</label>
+									<input type="number" class="form-control fw-bold" id="input-jpy-amount" step="1"
+										required>
+								</div>
 							</div>
 						</div>
-						<div class="mb-3">
-							<label class="form-label fw-bold text-danger small">💴 엔화(JPY)</label>
-							<div class="row g-3">
-								<div class="col-6"><label class="small text-muted">최초 매수 기준가</label><input type="number"
-										class="form-control" id="input-jpy-base" step="0.01" required></div>
-								<div class="col-6"><label class="small text-muted">분할 단위 갭</label><input type="number"
-										class="form-control" id="input-jpy-gap" step="0.01" required></div>
-							</div>
-						</div>
-						<div class="mb-3 border-top pt-3 mt-2">
-							<label class="form-label fw-bold text-success small">🏦 거래 계좌 목록</label>
-							<div class="text-muted small mb-2" style="font-size:0.75rem;">사용하는 증권사/은행을 쉼표(,)로 구분해서
+
+						<div class="mb-3 border-top pt-3">
+							<label class="form-label fw-bold text-dark small mb-1">🏦 거래 계좌 목록</label>
+							<div class="text-muted small mb-2" style="font-size:0.75rem;">사용하는 은행/증권사를 쉼표(,)로 구분해서
 								입력하세요.</div>
 							<input type="text" class="form-control" id="input-finance-list"
 								placeholder="예: 하나은행,토스뱅크,삼성증권" required>
 						</div>
-						<button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3">설정값 클라우드 저장</button>
+
+						<div class="mb-3 border-top pt-3">
+							<label class="form-label fw-bold text-dark small mb-1">📊 운용 상품 목록</label>
+							<div class="text-muted small mb-2" style="font-size:0.75rem;">외화 파킹 및 운용 상품명을 쉼표(,)로 구분해서
+								입력하세요. 첫 번째 항목이 기본값입니다.</div>
+							<input type="text" class="form-control" id="input-product-list"
+								placeholder="예: 현금,외화RP,발행어음,외화예금" required>
+						</div>
+
+						<button type="submit" class="btn btn-dark w-100 py-2 fw-bold rounded-3 mt-2">설정 저장</button>
 					</form>
 				</div>
 			</div>
@@ -369,7 +362,7 @@
 		</div>
 	</div>
 
-	<!-- 투자 기록 모달 -->
+	<!-- 투자 기록 추가/수정 모달 -->
 	<div class="modal fade" id="recordModal" tabindex="-1" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered">
 			<div class="modal-content rounded-3 border-0 shadow-lg">
@@ -387,6 +380,11 @@
 								style="cursor: pointer;" required></select>
 						</div>
 						<div class="mb-2">
+							<label class="form-label small fw-bold text-muted mb-1">📊 운용 상품</label>
+							<select class="form-select form-control-lg bg-light fw-bold" id="form-product"
+								style="cursor: pointer;" required></select>
+						</div>
+						<div class="mb-2">
 							<label class="form-label small fw-bold text-muted mb-1">매수 일자</label>
 							<input type="text" class="form-control form-control-lg flatpickr bg-white" id="form-date"
 								placeholder="날짜 및 시간 선택" style="cursor: pointer;" step="1" required>
@@ -398,7 +396,7 @@
 								oninput="calculateTotalBuy()" required>
 						</div>
 						<div class="mb-2">
-							<label class="form-label small fw-bold text-muted mb-1" id="label-foreign">매수수량</label>
+							<label class="form-label small fw-bold text-muted mb-1" id="label-foreign">외화금액 ($)</label>
 							<input type="number" class="form-control form-control-lg" id="form-amount" step="0.01"
 								oninput="calculateTotalBuy()" required>
 						</div>

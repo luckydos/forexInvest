@@ -26,7 +26,7 @@ window.fs = { collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, getDoc,
 window.auth = auth;
 
 // 전역 상태 관리
-let isRateLoaded = false; // 환율 수신 여부 (스켈레톤 동기화 플래그)
+let isRateLoaded = false;
 let currentRateSource = { source: 'loading', time: '' };
 
 let globalData = {
@@ -34,9 +34,10 @@ let globalData = {
 	jpy: { currentPrice: 915.20, history: [] },
 	soldHistory: [],
 	settings: {
-		USD_BASE_PRICE: 1300, USD_GAP: 10,
-		JPY_BASE_PRICE: 900, JPY_GAP: 5,
-		FINANCE_LIST: "하나은행,토스뱅크,삼성증권,스위치원,국민은행,신한은행,테더"
+		USD_DEFAULT_AMOUNT: 1000,
+		JPY_DEFAULT_AMOUNT: 100000,
+		FINANCE_LIST: "하나은행,토스뱅크,삼성증권,스위치원,국민은행,신한은행,테더",
+		PRODUCT_LIST: "현금,외화RP,발행어음,외화예금,미국주식"
 	}
 };
 
@@ -116,7 +117,7 @@ onAuthStateChanged(auth, (user) => {
 // 🔄 GAS 캐시 서버 연동 및 환율 수신
 window.refreshCurrentRates = async function () {
 	isRateLoaded = false;
-	renderDashboard(globalData); // 스켈레톤 로딩 상태 렌더링
+	renderDashboard(globalData);
 
 	const gasUrl = "https://script.google.com/macros/s/AKfycbyV4J5VZ_Og5vbQxpoqinTn4UXce3o4Dig9cbR-Yam4IewdfMz3snXAmdjLUPWP2KLe7g/exec";
 
@@ -182,7 +183,7 @@ function initFirebaseListeners() {
 
 	onSnapshot(doc(window.db, "settings", "general"), (docSnap) => {
 		if (docSnap.exists()) {
-			globalData.settings = docSnap.data();
+			globalData.settings = { ...globalData.settings, ...docSnap.data() };
 			applySettingsToInputs();
 			renderDashboard(globalData);
 		} else {
@@ -258,16 +259,24 @@ function hideLoading() {
 	document.getElementById('loading').style.display = 'none';
 }
 
+// 설정값을 화면 입력창 및 모달 셀렉트에 바인딩
 function applySettingsToInputs() {
-	if (globalData && globalData.settings) {
-		document.getElementById('input-usd-base').value = Number(globalData.settings.USD_BASE_PRICE) || 0;
-		document.getElementById('input-usd-gap').value = Number(globalData.settings.USD_GAP) || 0;
-		document.getElementById('input-jpy-base').value = Number(globalData.settings.JPY_BASE_PRICE) || 0;
-		document.getElementById('input-jpy-gap').value = Number(globalData.settings.JPY_GAP) || 0;
-		const financeListStr = globalData.settings.FINANCE_LIST || "하나은행,토스뱅크,삼성증권";
-		document.getElementById('input-finance-list').value = financeListStr;
+	if (!globalData || !globalData.settings) return;
 
-		const financeSelect = document.getElementById('form-finance');
+	// 기본 외화금액 설정값 채우기
+	const usdInput = document.getElementById('input-usd-amount');
+	const jpyInput = document.getElementById('input-jpy-amount');
+	if (usdInput) usdInput.value = Number(globalData.settings.USD_DEFAULT_AMOUNT) || 1000;
+	if (jpyInput) jpyInput.value = Number(globalData.settings.JPY_DEFAULT_AMOUNT) || 100000;
+
+	// 거래 계좌 목록
+	const financeListStr = globalData.settings.FINANCE_LIST || "하나은행,토스뱅크,삼성증권";
+	const finInput = document.getElementById('input-finance-list');
+	if (finInput) finInput.value = financeListStr;
+
+	const financeSelect = document.getElementById('form-finance');
+	if (financeSelect) {
+		const currentSelected = financeSelect.value;
 		financeSelect.innerHTML = '';
 		financeListStr.split(',').forEach(item => {
 			const val = item.trim();
@@ -278,6 +287,28 @@ function applySettingsToInputs() {
 				financeSelect.appendChild(opt);
 			}
 		});
+		if (currentSelected) financeSelect.value = currentSelected;
+	}
+
+	// 운용 상품 목록
+	const productListStr = globalData.settings.PRODUCT_LIST || "현금,외화RP,발행어음,외화예금,미국주식";
+	const prodInput = document.getElementById('input-product-list');
+	if (prodInput) prodInput.value = productListStr;
+
+	const productSelect = document.getElementById('form-product');
+	if (productSelect) {
+		const currentSelected = productSelect.value;
+		productSelect.innerHTML = '';
+		productListStr.split(',').forEach(item => {
+			const val = item.trim();
+			if (val) {
+				const opt = document.createElement('option');
+				opt.value = val;
+				opt.innerText = val;
+				productSelect.appendChild(opt);
+			}
+		});
+		if (currentSelected) productSelect.value = currentSelected;
 	}
 }
 
@@ -289,7 +320,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링
+// 💵 달러 / 엔화 렌더링 (타 상품 운용 시 매도 잠금 적용)
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -302,7 +333,6 @@ function renderCurrencySection(type, currencyData) {
 	let sumForeignAmount = 0;
 	let sumTotalValuation = 0;
 
-	// 1. 차수별 리스트 렌더링
 	if (history.length === 0) {
 		tbody.innerHTML = `<tr><td colspan="11" class="text-center text-muted py-4">누적된 투자 기록이 없습니다.</td></tr>`;
 		mDiv.innerHTML = `<div class="text-center text-muted py-4">누적된 투자 기록이 없습니다.</div>`;
@@ -313,8 +343,13 @@ function renderCurrencySection(type, currencyData) {
 			const totalBuy = Number(item.totalBuy) || 0;
 			const unitIcon = type === 'usd' ? '\$' : '¥';
 			const safeFinance = escapeHtml(item.finance);
+			const safeProduct = escapeHtml(item.product || '현금');
 			const safeDateText = escapeHtml(item.date || '-');
 			const financeStrEscaped = safeFinance.replace(/'/g, "\\'");
+			const productStrEscaped = safeProduct.replace(/'/g, "\\'");
+
+			// 타 상품 운용 여부 확인 (현금 또는 빈값이 아니면 잠금)
+			const isLocked = safeProduct && safeProduct !== '현금';
 
 			sumTotalBuy += totalBuy;
 			sumForeignAmount += foreignAmount;
@@ -326,7 +361,6 @@ function renderCurrencySection(type, currencyData) {
 			const profitRate = totalBuy > 0 ? ((currentProfit / totalBuy) * 100).toFixed(2) : "0.00";
 			const isProfit = currentProfit > 0;
 
-			// PC 및 모바일 공용 포지션 버튼 / 뱃지
 			let positionActionHtml = "";
 			let profitAmtText = "";
 			let profitRateText = "";
@@ -342,9 +376,14 @@ function renderCurrencySection(type, currencyData) {
 				profitAmtText = (currentProfit >= 0 ? '+' : '') + Math.round(currentProfit).toLocaleString() + "원";
 				profitRateText = (currentProfit >= 0 ? '+' : '') + profitRate + '%';
 
-				if (isProfit) {
+				if (isLocked) {
+					// 🔒 타 상품 운용 중: 매도 불가 잠금 뱃지 노출
+					positionActionHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 10px; font-size: 0.78rem; font-weight: 700; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background-color: #f3f0ff; color: #6f42c1; border: 1px solid #d0bfff;"><i class="fas fa-lock" style="font-size:0.75rem;"></i>${safeProduct} 운용중</span>`;
+				} else if (isProfit) {
+					// 현금 & 익절 가능: 팔기 버튼 활성화
 					positionActionHtml = `<button type="button" class="btn-position-sell-action" onclick="executeSale('${type}', '${item.id}', ${current})">🔥 +${profitRate}% 팔기 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
+					// 현금 & 보유 중
 					positionActionHtml = `<span class="badge-status-hold">⏳ ${profitRate}% 보유 중</span>`;
 				}
 			}
@@ -352,13 +391,13 @@ function renderCurrencySection(type, currencyData) {
 			const stockClass = !isRateLoaded ? '' : (currentProfit > 0 ? 'stock-up' : (currentProfit < 0 ? 'stock-down' : 'stock-stable'));
 
 			const editTools = `
-				<button type="button" class="btn btn-outline-primary btn-action-icon" title="수정" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}')"><i class="fas fa-edit"></i></button>
+				<button type="button" class="btn btn-outline-primary btn-action-icon" title="수정" onclick="openEditModal('${type}', '${item.id}', '${safeDateText}', ${buyPrice}, ${foreignAmount}, ${totalBuy}, '${financeStrEscaped}', '${productStrEscaped}')"><i class="fas fa-edit"></i></button>
 				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행: 메타 정보 완전 중앙 정렬 + 금액 우측 정렬
+			// PC 테이블 행: 가운데 정렬(No, 계좌, 일자, 포지션, 관리) 및 우측 정렬(금액/수량)
 			const tr = document.createElement('tr');
-			if (isRateLoaded && isProfit) tr.style.backgroundColor = '#fffdfd';
+			if (isRateLoaded && isProfit && !isLocked) tr.style.backgroundColor = '#fffdfd';
 			tr.innerHTML = `
 				<td class="text-center text-muted fw-bold">${item.no}</td>
 				<td class="text-center">${getFinanceBadge(safeFinance)}</td>
@@ -376,7 +415,7 @@ function renderCurrencySection(type, currencyData) {
 
 			// 모바일 전용 카드
 			const mCard = document.createElement('div');
-			mCard.className = 'mobile-record-card' + (isRateLoaded && isProfit ? ' profit-active' : '');
+			mCard.className = 'mobile-record-card' + (isRateLoaded && isProfit && !isLocked ? ' profit-active' : '');
 			mCard.innerHTML = `
 				<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
 					<span class="fw-bold text-secondary fs-6 d-flex align-items-center">
@@ -387,7 +426,7 @@ function renderCurrencySection(type, currencyData) {
 				<div class="row g-2 small text-dark mb-3">
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수일자</div><div class="fw-bold">${safeDateText.replace(' ', '<br>')}</div></div>
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수환율(₩)</div><div class="fw-bold">${buyPrice.toLocaleString()}원</div></div>
-					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수수량</div><div class="fw-bold">${unitIcon}${foreignAmount.toLocaleString()}</div></div>
+					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">외화금액(${unitIcon})</div><div class="fw-bold">${unitIcon}${foreignAmount.toLocaleString()}</div></div>
 					<div class="col-6"><div class="text-muted mb-1" style="font-size:0.75rem;">매수금(₩)</div><div class="fw-bold">${totalBuy.toLocaleString()}원</div></div>
 					<div class="col-12"><div class="text-muted mb-1" style="font-size:0.75rem;">평가금(₩)</div><div class="fw-bold">${valuationText}</div></div>
 				</div>
@@ -404,7 +443,7 @@ function renderCurrencySection(type, currencyData) {
 		});
 	}
 
-	// 2. 상단 요약 카드 계산 및 바인딩
+	// 상단 요약 카드 계산 및 바인딩
 	let avgBuyPrice = 0;
 	if (sumForeignAmount > 0) {
 		avgBuyPrice = type === 'jpy' ? (sumTotalBuy / sumForeignAmount) * 100 : (sumTotalBuy / sumForeignAmount);
@@ -492,9 +531,8 @@ function processAndRenderSoldData() {
 			const profitVal = Number(item.profit) || 0;
 			const profitRate = buyTotal > 0 ? ((profitVal / buyTotal) * 100).toFixed(2) : "0.00";
 			const rateText = `(${profitSign}${profitRate}%)`;
+			const unitIcon = item.type === '달러' ? '\$' : '¥';
 
-			// [시각적 중앙 정렬 완벽 보정 뱃지]
-			// 이모지 무게감을 감안하여 좌우 패딩을 미세 조율(좌10px, 우12px) 및 flexbox로 수직/수평 칼정렬
 			const badgeBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
 			const textBadgeHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 12px 0 10px; font-size: 0.8rem; font-weight: 700; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; box-sizing: border-box; background-color: #ffffff; border: 1px solid ${badgeBorderColor}; color: ${badgeBorderColor}; letter-spacing: -0.02em;"><span>${item.type === '달러' ? '💵' : '💴'}</span><span>${item.type}</span></span>`;
 
@@ -507,7 +545,6 @@ function processAndRenderSoldData() {
 				<button type="button" class="btn btn-outline-danger btn-action-icon" title="영구 삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행: 구분(text-center)과 금액(text-end) 완전 동기화
 			const tr = document.createElement('tr');
 			tr.innerHTML = `
 				<td class="text-center text-muted fw-bold">${displayNo}</td>
@@ -515,7 +552,7 @@ function processAndRenderSoldData() {
 				<td class="text-center">${textBadgeHtml}</td>
 				<td class="text-center">${safeBuyDate}</td>
 				<td class="text-end">${item.buyPrice.toLocaleString()}원</td>
-				<td class="text-end fw-bold">${item.amount.toLocaleString()}</td>
+				<td class="text-end fw-bold">${unitIcon}${item.amount.toLocaleString()}</td>
 				<td class="text-end">${item.totalBuy.toLocaleString()}원</td>
 				<td class="text-center">${safeSellDate}</td>
 				<td class="text-end">${item.sellPrice.toLocaleString()}원</td>
@@ -525,7 +562,6 @@ function processAndRenderSoldData() {
 			`;
 			tbody.appendChild(tr);
 
-			// 모바일 전용 카드
 			const cardBorderColor = item.type === '달러' ? '#0d6efd' : '#dc3545';
 			const mCard = document.createElement('div');
 			mCard.className = 'mobile-record-card';
@@ -688,6 +724,7 @@ window.restoreSoldRecord = async function (docId) {
 				foreignAmount: Number(data.amount) || 0,
 				totalBuy: Number(data.totalBuy) || 0,
 				finance: data.finance || "",
+				product: "현금",
 				memo: "보유중",
 				createdAt: data.createdAt || Date.now()
 			});
@@ -720,12 +757,18 @@ window.calculateTotalBuy = function () {
 	}
 };
 
+// 모달 열기: 기본 외화금액 및 운용 상품 적용
 window.openAddModal = function (type) {
 	document.getElementById('recordForm').reset();
 	document.getElementById('form-type').value = type;
 	document.getElementById('form-docid').value = '';
+
 	const financeSelect = document.getElementById('form-finance');
 	if (financeSelect.options.length > 0) financeSelect.selectedIndex = 0;
+
+	const productSelect = document.getElementById('form-product');
+	if (productSelect.options.length > 0) productSelect.selectedIndex = 0;
+
 	const dateInput = document.getElementById('form-date');
 	if (dateInput._flatpickr) dateInput._flatpickr.setDate(new Date());
 
@@ -735,23 +778,25 @@ window.openAddModal = function (type) {
 	if (type === 'usd') {
 		document.getElementById('modalTitle').innerHTML = '💵 달러 투자 기록 추가';
 		document.getElementById('label-price-unit').innerText = '매수환율(₩)';
-		document.getElementById('label-foreign').innerText = '매수수량 (\$)';
+		document.getElementById('label-foreign').innerText = '외화금액 (\$)';
 		const currentUsd = globalData.usd ? parseFloat(globalData.usd.currentPrice) : 0;
 		document.getElementById('form-price').value = currentUsd > 0 ? currentUsd.toFixed(2) : "";
-		document.getElementById('form-amount').value = 1000;
+		const defaultUsd = (globalData.settings && globalData.settings.USD_DEFAULT_AMOUNT) ? Number(globalData.settings.USD_DEFAULT_AMOUNT) : 1000;
+		document.getElementById('form-amount').value = defaultUsd;
 	} else {
 		document.getElementById('modalTitle').innerHTML = '💴 엔화 투자 기록 추가';
 		document.getElementById('label-price-unit').innerText = '매수환율(₩)';
-		document.getElementById('label-foreign').innerText = '매수수량 (¥)';
+		document.getElementById('label-foreign').innerText = '외화금액 (¥)';
 		const currentJpy = globalData.jpy ? parseFloat(globalData.jpy.currentPrice) : 0;
 		document.getElementById('form-price').value = currentJpy > 0 ? currentJpy.toFixed(2) : "";
-		document.getElementById('form-amount').value = 100000;
+		const defaultJpy = (globalData.settings && globalData.settings.JPY_DEFAULT_AMOUNT) ? Number(globalData.settings.JPY_DEFAULT_AMOUNT) : 100000;
+		document.getElementById('form-amount').value = defaultJpy;
 	}
 	window.calculateTotalBuy();
 	recordModal.show();
 };
 
-window.openEditModal = function (type, docId, date, buyPrice, foreignAmount, totalBuy, finance) {
+window.openEditModal = function (type, docId, date, buyPrice, foreignAmount, totalBuy, finance, product) {
 	document.getElementById('form-type').value = type;
 	document.getElementById('form-docid').value = docId;
 	const dateInput = document.getElementById('form-date');
@@ -762,11 +807,12 @@ window.openEditModal = function (type, docId, date, buyPrice, foreignAmount, tot
 	document.getElementById('form-amount').value = Number(foreignAmount);
 	document.getElementById('form-totalbuy').value = Math.round(Number(totalBuy));
 	document.getElementById('form-finance').value = finance || '';
+	document.getElementById('form-product').value = product || '현금';
 
 	document.getElementById('submitBtn').innerText = '수정';
 	document.getElementById('submitBtn').className = 'btn btn-success px-4 btn-sm';
 	document.getElementById('label-price-unit').innerText = '매수환율(₩)';
-	document.getElementById('label-foreign').innerText = type === 'usd' ? '매수수량 (\$)' : '매수수량 (¥)';
+	document.getElementById('label-foreign').innerText = type === 'usd' ? '외화금액 (\$)' : '외화금액 (¥)';
 	document.getElementById('modalTitle').innerHTML = type === 'usd' ? '💵 달러 투자 기록 수정' : '💴 엔화 투자 기록 수정';
 	recordModal.show();
 };
@@ -845,7 +891,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	// 매수 기록 저장 폼 리스너
+	// 매수 기록 저장 폼 리스너 (운용 상품 product 필드 저장)
 	document.getElementById('recordForm').addEventListener('submit', async (e) => {
 		e.preventDefault();
 		const type = document.getElementById('form-type').value;
@@ -855,6 +901,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		const foreignAmount = Number(document.getElementById('form-amount').value);
 		const totalBuy = Number(document.getElementById('form-totalbuy').value);
 		const finance = document.getElementById('form-finance').value;
+		const product = document.getElementById('form-product').value || '현금';
 
 		recordModal.hide();
 		showLoading("데이터 저장 중...");
@@ -868,6 +915,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					foreignAmount: foreignAmount,
 					totalBuy: totalBuy,
 					finance: finance,
+					product: product,
 					memo: "보유중",
 					createdAt: Date.now()
 				});
@@ -877,7 +925,8 @@ document.addEventListener("DOMContentLoaded", () => {
 					buyPrice: buyPrice,
 					foreignAmount: foreignAmount,
 					totalBuy: totalBuy,
-					finance: finance
+					finance: finance,
+					product: product
 				});
 			}
 			hideLoading();
@@ -888,26 +937,30 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	// 설정 저장 폼 리스너
+	// 설정 저장 폼 리스너 (기존 찌꺼기 기준가/갭 완전 제거 및 단일 덮어쓰기)
 	document.getElementById('settingForm').addEventListener('submit', async (e) => {
 		e.preventDefault();
-		const usdBase = Number(document.getElementById('input-usd-base').value);
-		const usdGap = Number(document.getElementById('input-usd-gap').value);
-		const jpyBase = Number(document.getElementById('input-jpy-base').value);
-		const jpyGap = Number(document.getElementById('input-jpy-gap').value);
+		const usdAmount = Number(document.getElementById('input-usd-amount').value) || 1000;
+		const jpyAmount = Number(document.getElementById('input-jpy-amount').value) || 100000;
 		const financeList = document.getElementById('input-finance-list').value;
+		const productList = document.getElementById('input-product-list').value;
 
 		showLoading("설정값 저장 중...");
 		try {
-			await window.fs.setDoc(window.fs.doc(window.db, "settings", "general"), {
-				USD_BASE_PRICE: usdBase,
-				USD_GAP: usdGap,
-				JPY_BASE_PRICE: jpyBase,
-				JPY_GAP: jpyGap,
-				FINANCE_LIST: financeList
-			});
+			const cleanSettings = {
+				USD_DEFAULT_AMOUNT: usdAmount,
+				JPY_DEFAULT_AMOUNT: jpyAmount,
+				FINANCE_LIST: financeList,
+				PRODUCT_LIST: productList
+			};
+
+			// setDoc 단독 실행으로 Firestore 문서 내 기존 미사용 필드(USD_BASE_PRICE 등)를 완전히 날리고 새 구조로 덮어씀
+			await window.fs.setDoc(window.fs.doc(window.db, "settings", "general"), cleanSettings);
+			globalData.settings = cleanSettings;
+			applySettingsToInputs();
+
 			hideLoading();
-			Swal.fire({ icon: 'success', title: '설정 저장 성공', confirmButtonText: '확인', timer: 1800, timerProgressBar: true });
+			Swal.fire({ icon: 'success', title: '설정 저장 완료', confirmButtonText: '확인', timer: 1800, timerProgressBar: true });
 		} catch (err) {
 			hideLoading();
 			Swal.fire({ icon: 'error', title: '저장 실패', text: err.message, confirmButtonText: '확인' });
