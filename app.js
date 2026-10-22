@@ -33,6 +33,10 @@ let globalData = {
 	usd: { currentPrice: 1357.67, history: [] },
 	jpy: { currentPrice: 915.20, history: [] },
 	soldHistory: [],
+	profitSummary: {
+		carryOverUsdProfit: 0,
+		carryOverJpyProfit: 0
+	},
 	settings: {
 		USD_DEFAULT_AMOUNT: 1000,
 		JPY_DEFAULT_AMOUNT: 100000,
@@ -45,6 +49,7 @@ let recordModal;
 let currentSoldFilter = 'all';
 let currentSoldPage = 1;
 let currentSoldPageSize = 10;
+let selectedSoldIds = new Set();
 
 function escapeHtml(unsafe) {
 	if (unsafe == null) return '';
@@ -181,6 +186,7 @@ window.refreshCurrentRates = async function () {
 function initFirebaseListeners() {
 	const { collection, onSnapshot, query, orderBy, doc, setDoc } = window.fs;
 
+	// 1. 순수 환경 설정 리스너 (settings/general)
 	onSnapshot(doc(window.db, "settings", "general"), (docSnap) => {
 		if (docSnap.exists()) {
 			globalData.settings = { ...globalData.settings, ...docSnap.data() };
@@ -191,6 +197,27 @@ function initFirebaseListeners() {
 		}
 	});
 
+	// 2. 누적 이월 손익 전용 DB 리스너 (summary/profit) - 설정과 완벽 분리
+	onSnapshot(doc(window.db, "summary", "profit"), (docSnap) => {
+		if (docSnap.exists()) {
+			const data = docSnap.data();
+			globalData.profitSummary = {
+				carryOverUsdProfit: Number(data.carryOverUsdProfit) || 0,
+				carryOverJpyProfit: Number(data.carryOverJpyProfit) || 0
+			};
+		} else {
+			const defaultProfitSummary = {
+				carryOverUsdProfit: 0,
+				carryOverJpyProfit: 0,
+				updatedAt: Date.now()
+			};
+			setDoc(doc(window.db, "summary", "profit"), defaultProfitSummary);
+			globalData.profitSummary = defaultProfitSummary;
+		}
+		processAndRenderSoldData();
+	});
+
+	// 3. 투자 보유 내역 리스너 (investments)
 	const qTrades = query(collection(window.db, "investments"), orderBy("createdAt", "desc"));
 	onSnapshot(qTrades, (snapshot) => {
 		const usdList = [];
@@ -216,6 +243,7 @@ function initFirebaseListeners() {
 		renderDashboard(globalData);
 	});
 
+	// 4. 실현 손익 내역 리스너 (soldHistory)
 	const qSold = query(collection(window.db, "soldHistory"), orderBy("createdAt", "desc"));
 	onSnapshot(qSold, (snapshot) => {
 		const soldList = [];
@@ -259,17 +287,14 @@ function hideLoading() {
 	document.getElementById('loading').style.display = 'none';
 }
 
-// 설정값을 화면 입력창 및 모달 셀렉트에 바인딩
 function applySettingsToInputs() {
 	if (!globalData || !globalData.settings) return;
 
-	// 기본 외화금액 설정값 채우기
 	const usdInput = document.getElementById('input-usd-amount');
 	const jpyInput = document.getElementById('input-jpy-amount');
 	if (usdInput) usdInput.value = Number(globalData.settings.USD_DEFAULT_AMOUNT) || 1000;
 	if (jpyInput) jpyInput.value = Number(globalData.settings.JPY_DEFAULT_AMOUNT) || 100000;
 
-	// 거래 계좌 목록
 	const financeListStr = globalData.settings.FINANCE_LIST || "하나은행,토스뱅크,삼성증권";
 	const finInput = document.getElementById('input-finance-list');
 	if (finInput) finInput.value = financeListStr;
@@ -290,7 +315,6 @@ function applySettingsToInputs() {
 		if (currentSelected) financeSelect.value = currentSelected;
 	}
 
-	// 운용 상품 목록
 	const productListStr = globalData.settings.PRODUCT_LIST || "현금,외화RP,발행어음,외화예금,미국주식";
 	const prodInput = document.getElementById('input-product-list');
 	if (prodInput) prodInput.value = productListStr;
@@ -320,7 +344,7 @@ function renderDashboard(data) {
 	processAndRenderSoldData();
 }
 
-// 💵 달러 / 엔화 렌더링 (타 상품 운용 시 매도 잠금 적용)
+// 💵 달러 / 엔화 렌더링
 function renderCurrencySection(type, currencyData) {
 	const current = Number(currencyData.currentPrice) || 0;
 	const history = currencyData.history || [];
@@ -348,7 +372,6 @@ function renderCurrencySection(type, currencyData) {
 			const financeStrEscaped = safeFinance.replace(/'/g, "\\'");
 			const productStrEscaped = safeProduct.replace(/'/g, "\\'");
 
-			// 타 상품 운용 여부 확인 (현금 또는 빈값이 아니면 잠금)
 			const isLocked = safeProduct && safeProduct !== '현금';
 
 			sumTotalBuy += totalBuy;
@@ -377,13 +400,10 @@ function renderCurrencySection(type, currencyData) {
 				profitRateText = (currentProfit >= 0 ? '+' : '') + profitRate + '%';
 
 				if (isLocked) {
-					// 🔒 타 상품 운용 중
 					positionActionHtml = `<span class="badge-status-locked shadow-sm"><i class="fas fa-lock" style="font-size:0.75rem;"></i><span>${safeProduct} 운용중</span></span>`;
 				} else if (isProfit) {
-					// 💰 익절 실행 액션 버튼
 					positionActionHtml = `<button type="button" class="btn-position-sell-action shadow-sm" onclick="executeSale('${type}', '${item.id}', ${current})"><i class="fas fa-coins" style="font-size:0.8rem;"></i>익절 실행 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
-					// ⏳ 익절 대기 (또는 반등 대기)
 					positionActionHtml = `<span class="badge-status-hold shadow-sm"><i class="fas fa-hourglass-half" style="font-size:0.75rem;"></i>익절 대기</span>`;
 				}
 			}
@@ -395,7 +415,6 @@ function renderCurrencySection(type, currencyData) {
 				<button type="button" class="btn btn-outline-danger btn-action-icon ms-1" title="삭제" onclick="deleteRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
-			// PC 테이블 행: 가운데 정렬(No, 계좌, 일자, 포지션, 관리) 및 우측 정렬(금액/수량)
 			const tr = document.createElement('tr');
 			if (isRateLoaded && isProfit && !isLocked) tr.style.backgroundColor = '#fffdfd';
 			tr.innerHTML = `
@@ -413,7 +432,6 @@ function renderCurrencySection(type, currencyData) {
 			`;
 			tbody.appendChild(tr);
 
-			// 모바일 전용 카드
 			const mCard = document.createElement('div');
 			mCard.className = 'mobile-record-card' + (isRateLoaded && isProfit && !isLocked ? ' profit-active' : '');
 			mCard.innerHTML = `
@@ -443,7 +461,6 @@ function renderCurrencySection(type, currencyData) {
 		});
 	}
 
-	// 상단 요약 카드 계산 및 바인딩
 	let avgBuyPrice = 0;
 	if (sumForeignAmount > 0) {
 		avgBuyPrice = type === 'jpy' ? (sumTotalBuy / sumForeignAmount) * 100 : (sumTotalBuy / sumForeignAmount);
@@ -487,20 +504,35 @@ function renderCurrencySection(type, currencyData) {
 	}
 }
 
-// 💰 실현 손익 처리 및 페이지네이션
+// 💰 실현 손익 처리 및 이월 누적 합산 렌더링
 function processAndRenderSoldData() {
 	const soldList = globalData.soldHistory || [];
-	let totalAccumulatedProfit = 0, usdAccumulatedProfit = 0, jpyAccumulatedProfit = 0;
+	const carryUsd = globalData.profitSummary?.carryOverUsdProfit || 0;
+	const carryJpy = globalData.profitSummary?.carryOverJpyProfit || 0;
+	const totalCarry = carryUsd + carryJpy;
 
+	let curUsdProfit = 0, curJpyProfit = 0;
 	soldList.forEach(item => {
-		totalAccumulatedProfit += item.profit;
-		if (item.type === '달러') usdAccumulatedProfit += item.profit;
-		if (item.type === '엔화') jpyAccumulatedProfit += item.profit;
+		if (item.type === '달러') curUsdProfit += item.profit;
+		if (item.type === '엔화') curJpyProfit += item.profit;
 	});
 
-	document.getElementById('total-accumulated-profit').innerText = (totalAccumulatedProfit >= 0 ? '+' : '') + totalAccumulatedProfit.toLocaleString() + "원";
-	document.getElementById('usd-accumulated-profit').innerText = (usdAccumulatedProfit >= 0 ? '+' : '') + usdAccumulatedProfit.toLocaleString() + "원";
-	document.getElementById('jpy-accumulated-profit').innerText = (jpyAccumulatedProfit >= 0 ? '+' : '') + jpyAccumulatedProfit.toLocaleString() + "원";
+	const totalAccumulated = totalCarry + curUsdProfit + curJpyProfit;
+	const totalUsdAccumulated = carryUsd + curUsdProfit;
+	const totalJpyAccumulated = carryJpy + curJpyProfit;
+
+	document.getElementById('total-accumulated-profit').innerText = (totalAccumulated >= 0 ? '+' : '') + totalAccumulated.toLocaleString() + "원";
+	document.getElementById('usd-accumulated-profit').innerText = (totalUsdAccumulated >= 0 ? '+' : '') + totalUsdAccumulated.toLocaleString() + "원";
+	document.getElementById('jpy-accumulated-profit').innerText = (totalJpyAccumulated >= 0 ? '+' : '') + totalJpyAccumulated.toLocaleString() + "원";
+
+	// 보조 텍스트 (이월 금액 표시)
+	const totalCarryEl = document.getElementById('total-carry-over-subtext');
+	const usdCarryEl = document.getElementById('usd-carry-over-subtext');
+	const jpyCarryEl = document.getElementById('jpy-carry-over-subtext');
+
+	if (totalCarryEl) totalCarryEl.innerText = `(이월 합산: ${(totalCarry >= 0 ? '+' : '')}${totalCarry.toLocaleString()}원)`;
+	if (usdCarryEl) usdCarryEl.innerText = `(이월: ${(carryUsd >= 0 ? '+' : '')}${carryUsd.toLocaleString()}원)`;
+	if (jpyCarryEl) jpyCarryEl.innerText = `(이월: ${(carryJpy >= 0 ? '+' : '')}${carryJpy.toLocaleString()}원)`;
 
 	let filteredList = soldList;
 	if (currentSoldFilter !== 'all') filteredList = soldList.filter(item => item.type === currentSoldFilter);
@@ -518,8 +550,11 @@ function processAndRenderSoldData() {
 	tbody.innerHTML = '';
 	mDiv.innerHTML = '';
 
+	const checkAllBox = document.getElementById('check-all-sold');
+	if (checkAllBox) checkAllBox.checked = false;
+
 	if (pagedList.length === 0) {
-		tbody.innerHTML = `<tr><td colspan="12" class="text-center text-muted py-4">해당 내역이 존재하지 않습니다.</td></tr>`;
+		tbody.innerHTML = `<tr><td colspan="13" class="text-center text-muted py-4">해당 내역이 존재하지 않습니다.</td></tr>`;
 		mDiv.innerHTML = `<div class="text-center text-muted py-3">해당 내역이 존재하지 않습니다.</div>`;
 	} else {
 		pagedList.forEach(item => {
@@ -539,14 +574,20 @@ function processAndRenderSoldData() {
 			const safeFinance = escapeHtml(item.finance);
 			const safeBuyDate = escapeHtml(item.buyDate);
 			const safeSellDate = escapeHtml(item.sellDate);
+			const isChecked = selectedSoldIds.has(item.id);
 
+			// 행별 관리 도구: 되돌리기 버튼 및 스마트 삭제 버튼
 			const soldActionTools = `
 				<button type="button" class="btn btn-outline-warning btn-action-icon me-1 text-dark" title="보유 내역으로 되돌리기" onclick="restoreSoldRecord('${item.id}')"><i class="fas fa-undo"></i></button>
-				<button type="button" class="btn btn-outline-danger btn-action-icon" title="영구 삭제" onclick="deleteHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
+				<button type="button" class="btn btn-outline-danger btn-action-icon" title="이월 또는 삭제" onclick="deleteSingleHistoryRecord('${item.id}')"><i class="fas fa-trash-alt"></i></button>
 			`;
 
 			const tr = document.createElement('tr');
+			if (isChecked) tr.classList.add('table-active');
 			tr.innerHTML = `
+				<td class="text-center">
+					<input type="checkbox" class="form-check-input sold-item-check" data-id="${item.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectSoldItem('${item.id}', this.checked)">
+				</td>
 				<td class="text-center text-muted fw-bold">${displayNo}</td>
 				<td class="text-center">${getFinanceBadge(safeFinance)}</td>
 				<td class="text-center">${textBadgeHtml}</td>
@@ -569,6 +610,7 @@ function processAndRenderSoldData() {
 			mCard.innerHTML = `
 				<div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
 					<span class="fw-bold text-dark d-flex align-items-center">
+						<input type="checkbox" class="form-check-input me-2 sold-item-check" data-id="${item.id}" ${isChecked ? 'checked' : ''} onchange="toggleSelectSoldItem('${item.id}', this.checked)">
 						<span class="text-muted small me-2">No.${displayNo}</span> ${getFinanceBadge(safeFinance)} <span class="ms-1">${textBadgeHtml}</span>
 					</span>
 					<div class="d-flex align-items-center">${soldActionTools}</div>
@@ -589,8 +631,211 @@ function processAndRenderSoldData() {
 			mDiv.appendChild(mCard);
 		});
 	}
+	updateBatchActionUI();
 	renderPaginationNav(totalPages);
 }
+
+// ======================== 체크박스 및 일괄 정리 액션 ========================
+window.toggleSelectSoldItem = function (docId, isChecked) {
+	if (isChecked) selectedSoldIds.add(docId);
+	else selectedSoldIds.delete(docId);
+	updateBatchActionUI();
+};
+
+window.toggleSelectAllSold = function (isChecked) {
+	const checkboxes = document.querySelectorAll('.sold-item-check');
+	checkboxes.forEach(cb => {
+		const docId = cb.getAttribute('data-id');
+		cb.checked = isChecked;
+		if (isChecked) selectedSoldIds.add(docId);
+		else selectedSoldIds.delete(docId);
+	});
+	updateBatchActionUI();
+};
+
+function updateBatchActionUI() {
+	const count = selectedSoldIds.size;
+	const btnLabel = document.getElementById('btn-label-selected-clean');
+	if (btnLabel) {
+		btnLabel.innerText = count > 0 ? `선택 내역 정리 (${count})` : '선택 내역 정리';
+	}
+}
+
+// 실현 손익 스마트 정리 (공통 처리 함수)
+async function executeCleanProcess(targetDocs, scopeTitle) {
+	let targetUsdProfit = 0;
+	let targetJpyProfit = 0;
+	targetDocs.forEach(item => {
+		if (item.type === '달러') targetUsdProfit += item.profit;
+		if (item.type === '엔화') targetJpyProfit += item.profit;
+	});
+	const totalTargetProfit = targetUsdProfit + targetJpyProfit;
+
+	const result = await Swal.fire({
+		title: scopeTitle,
+		html: `
+			<div class="text-start small text-secondary mb-3">
+				대상 <b>${targetDocs.length}건</b>의 실현 손익 기록을 목록에서 정리합니다.<br>
+				<span class="text-dark fw-bold">정리 대상 손익 합계:</span> 
+				<b class="${totalTargetProfit >= 0 ? 'text-danger' : 'text-primary'}">${totalTargetProfit >= 0 ? '+' : ''}${totalTargetProfit.toLocaleString()}원</b>
+				<br><span style="font-size:0.75rem;">(달러: ${targetUsdProfit.toLocaleString()}원 / 엔화: ${targetJpyProfit.toLocaleString()}원)</span>
+			</div>
+			<div class="alert alert-light border small text-start p-2 mb-0">
+				<b>• 이월 합산 후 삭제 (추천):</b> 상단 총 누적 손익 통계는 그대로 보존되며 목록만 깔끔하게 비워집니다.<br>
+				<b>• 완전 삭제:</b> 손익 통계에서도 제외하고 완전히 없앱니다 (오입력 데이터 정리용).
+			</div>
+		`,
+		icon: 'question',
+		showCancelButton: true,
+		showDenyButton: true,
+		confirmButtonColor: '#198754',
+		denyButtonColor: '#dc3545',
+		cancelButtonColor: '#6c757d',
+		confirmButtonText: '이월 합산 후 삭제',
+		denyButtonText: '완전 삭제 (통계 제외)',
+		cancelButtonText: '취소'
+	});
+
+	if (result.isConfirmed) {
+		showLoading("이월 누적 손익으로 이관 및 목록 정리 중...");
+		try {
+			const curCarryUsd = Number(globalData.profitSummary?.carryOverUsdProfit) || 0;
+			const curCarryJpy = Number(globalData.profitSummary?.carryOverJpyProfit) || 0;
+
+			const newCarryUsd = curCarryUsd + targetUsdProfit;
+			const newCarryJpy = curCarryJpy + targetJpyProfit;
+
+			await window.fs.setDoc(window.fs.doc(window.db, "summary", "profit"), {
+				carryOverUsdProfit: newCarryUsd,
+				carryOverJpyProfit: newCarryJpy,
+				updatedAt: Date.now()
+			});
+
+			for (const item of targetDocs) {
+				await window.fs.deleteDoc(window.fs.doc(window.db, "soldHistory", item.id));
+				selectedSoldIds.delete(item.id);
+			}
+
+			updateBatchActionUI();
+			hideLoading();
+			Swal.fire({
+				icon: 'success',
+				title: '이월 정리 완료',
+				text: `총 ${totalTargetProfit.toLocaleString()}원이 이월 손익에 합산되었으며 목록이 깨끗해졌습니다.`,
+				confirmButtonText: '확인'
+			});
+		} catch (err) {
+			hideLoading();
+			Swal.fire({ icon: 'error', title: '정리 실패', text: err.message, confirmButtonText: '확인' });
+		}
+
+	} else if (result.isDenied) {
+		showLoading("데이터 완전 삭제 중...");
+		try {
+			for (const item of targetDocs) {
+				await window.fs.deleteDoc(window.fs.doc(window.db, "soldHistory", item.id));
+				selectedSoldIds.delete(item.id);
+			}
+			updateBatchActionUI();
+			hideLoading();
+			Swal.fire({
+				icon: 'success',
+				title: '삭제 완료',
+				text: `${targetDocs.length}건의 데이터가 완전히 삭제되었습니다.`,
+				confirmButtonText: '확인'
+			});
+		} catch (err) {
+			hideLoading();
+			Swal.fire({ icon: 'error', title: '삭제 실패', text: err.message, confirmButtonText: '확인' });
+		}
+	}
+}
+
+// 상단 버튼 일괄 정리 호출부
+window.batchCleanSoldHistory = async function (isCleanAll = false) {
+	const soldList = globalData.soldHistory || [];
+	let targetDocs = [];
+
+	if (isCleanAll) {
+		targetDocs = [...soldList];
+		if (targetDocs.length === 0) {
+			Swal.fire({ icon: 'info', title: '정리할 실현 손익 내역이 없습니다.', confirmButtonText: '확인' });
+			return;
+		}
+		await executeCleanProcess(targetDocs, "전체 내역 일괄 정리");
+	} else {
+		targetDocs = soldList.filter(item => selectedSoldIds.has(item.id));
+		if (targetDocs.length === 0) {
+			Swal.fire({
+				icon: 'warning',
+				title: '선택된 내역이 없습니다.',
+				text: '정리할 내역의 체크박스를 먼저 선택해 주세요.',
+				confirmButtonText: '확인'
+			});
+			return;
+		}
+		await executeCleanProcess(targetDocs, `선택 내역 ${targetDocs.length}건 정리`);
+	}
+};
+
+// 행별 개별 삭제 버튼 클릭 시 스마트 팝업 연동
+window.deleteSingleHistoryRecord = async function (docId) {
+	const item = (globalData.soldHistory || []).find(d => d.id === docId);
+	if (!item) {
+		Swal.fire({ icon: 'error', title: '해당 내역을 찾을 수 없습니다.', confirmButtonText: '확인' });
+		return;
+	}
+	await executeCleanProcess([item], "실현 손익 1건 정리");
+};
+
+// ✏️ 이월 누적 손익 수동 관리 모달
+window.openCarryOverEditModal = async function () {
+	const curUsd = Number(globalData.profitSummary?.carryOverUsdProfit) || 0;
+	const curJpy = Number(globalData.profitSummary?.carryOverJpyProfit) || 0;
+
+	const { value: formValues } = await Swal.fire({
+		title: '이월 누적 손익 수동 관리',
+		html: `
+			<div class="text-start small text-muted mb-3">과거 결산 및 정리로 누적된 이월 손익을 직접 보정합니다.</div>
+			<div class="text-start mb-2">
+				<label class="form-label small fw-bold text-dark mb-1">💵 달러 이월 손익(₩)</label>
+				<input type="number" id="swal-carry-usd" class="form-control fw-bold" value="${curUsd}" step="1">
+			</div>
+			<div class="text-start mb-2">
+				<label class="form-label small fw-bold text-dark mb-1">💴 엔화 이월 손익(₩)</label>
+				<input type="number" id="swal-carry-jpy" class="form-control fw-bold" value="${curJpy}" step="1">
+			</div>
+		`,
+		icon: 'info',
+		showCancelButton: true,
+		confirmButtonColor: '#0d6efd',
+		cancelButtonColor: '#6c757d',
+		confirmButtonText: '저장하기',
+		cancelButtonText: '취소',
+		preConfirm: () => {
+			return {
+				usd: Number(document.getElementById('swal-carry-usd').value) || 0,
+				jpy: Number(document.getElementById('swal-carry-jpy').value) || 0
+			};
+		}
+	});
+
+	if (formValues) {
+		showLoading("이월 누적 손익 갱신 중...");
+		try {
+			await window.fs.setDoc(window.fs.doc(window.db, "summary", "profit"), {
+				carryOverUsdProfit: formValues.usd,
+				carryOverJpyProfit: formValues.jpy,
+				updatedAt: Date.now()
+			});
+			hideLoading();
+			Swal.fire({ icon: 'success', title: '수정 완료', text: '이월 누적 손익이 저장되었습니다.', timer: 1500, confirmButtonText: '확인' });
+		} catch (err) {
+			hideLoading();
+			Swal.fire({ icon: 'error', title: '저장 실패', text: err.message, confirmButtonText: '확인' });
+		}
+	}
+};
 
 window.changeSoldFilter = function (filterValue) { currentSoldFilter = filterValue; currentSoldPage = 1; processAndRenderSoldData(); };
 window.changeSoldPageSize = function () { currentSoldPageSize = parseInt(document.getElementById('soldPageSize').value) || 10; currentSoldPage = 1; processAndRenderSoldData(); };
@@ -695,7 +940,7 @@ window.executeSale = async function (type, docId, defaultPrice) {
 	}
 };
 
-// ↩️ 실현손익 내역을 보유 상태로 되돌리기 (매도 취소)
+// ↩️ 실현손익 내역을 보유 상태로 되돌리기
 window.restoreSoldRecord = async function (docId) {
 	const result = await Swal.fire({
 		title: '보유 내역으로 되돌리기',
@@ -837,26 +1082,6 @@ window.deleteRecord = async function (docId) {
 	}
 };
 
-window.deleteHistoryRecord = async function (docId) {
-	const result = await Swal.fire({
-		title: '실현손익 데이터 삭제',
-		text: "이 실현손익 기록을 데이터베이스에서 영구히 삭제합니까?",
-		icon: 'warning', showCancelButton: true, confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d', confirmButtonText: '삭제', cancelButtonText: '취소'
-	});
-
-	if (result.isConfirmed) {
-		showLoading("삭제 처리 중...");
-		try {
-			await window.fs.deleteDoc(window.fs.doc(window.db, "soldHistory", docId));
-			hideLoading();
-			Swal.fire({ icon: 'success', title: '삭제 완료', confirmButtonText: '확인', timer: 1800, timerProgressBar: true });
-		} catch (err) {
-			hideLoading();
-			Swal.fire({ icon: 'error', title: '삭제 실패', text: err.message, confirmButtonText: '확인' });
-		}
-	}
-};
-
 // DOM 로드 완료 이벤트 리스너
 document.addEventListener("DOMContentLoaded", () => {
 	recordModal = new bootstrap.Modal(document.getElementById('recordModal'));
@@ -891,7 +1116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	// 매수 기록 저장 폼 리스너 (운용 상품 product 필드 저장)
+	// 매수 기록 저장 폼 리스너
 	document.getElementById('recordForm').addEventListener('submit', async (e) => {
 		e.preventDefault();
 		const type = document.getElementById('form-type').value;
@@ -937,7 +1162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	// 설정 저장 폼 리스너 (기존 찌꺼기 기준가/갭 완전 제거 및 단일 덮어쓰기)
+	// 설정 저장 폼 리스너 (settings/general 만 단독 덮어쓰기하여 통계 DB와 완전 분리)
 	document.getElementById('settingForm').addEventListener('submit', async (e) => {
 		e.preventDefault();
 		const usdAmount = Number(document.getElementById('input-usd-amount').value) || 1000;
@@ -954,7 +1179,6 @@ document.addEventListener("DOMContentLoaded", () => {
 				PRODUCT_LIST: productList
 			};
 
-			// setDoc 단독 실행으로 Firestore 문서 내 기존 미사용 필드(USD_BASE_PRICE 등)를 완전히 날리고 새 구조로 덮어씀
 			await window.fs.setDoc(window.fs.doc(window.db, "settings", "general"), cleanSettings);
 			globalData.settings = cleanSettings;
 			applySettingsToInputs();

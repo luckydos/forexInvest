@@ -239,23 +239,35 @@
 			<div class="tab-pane fade" id="sold-page">
 				<div class="row g-2 mb-3">
 					<div class="col-12 col-md-4">
-						<div class="card-custom p-3 card-realized-profit all"><span
-								class="text-success profit-title-text"><i class="fas fa-coins me-1"></i>전체 실현 손익</span>
+						<div class="card-custom p-3 card-realized-profit all">
+							<div class="d-flex justify-content-between align-items-center">
+								<span class="text-success profit-title-text"><i class="fas fa-coins me-1"></i>전체 실현
+									손익</span>
+								<button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
+									style="font-size:0.75rem;" onclick="openCarryOverEditModal()"
+									title="이월 누적 손익 수동 관리"><i class="fas fa-cog me-1"></i>이월 관리</button>
+							</div>
 							<div class="profit-value-text text-success" id="total-accumulated-profit">0원</div>
+							<div class="text-muted small mt-1 carry-over-subtext" id="total-carry-over-subtext"
+								style="font-size:0.75rem;">(이월 합계: 0원)</div>
 						</div>
 					</div>
 					<div class="col-6 col-md-4">
-						<div class="card-custom p-3 card-realized-profit usd"><span
-								class="text-primary profit-title-text"><i class="fas fa-dollar-sign me-1"></i>달러 실현
+						<div class="card-custom p-3 card-realized-profit usd">
+							<span class="text-primary profit-title-text"><i class="fas fa-dollar-sign me-1"></i>달러 실현
 								손익</span>
 							<div class="profit-value-text text-primary" id="usd-accumulated-profit">0원</div>
+							<div class="text-muted small mt-1 carry-over-subtext" id="usd-carry-over-subtext"
+								style="font-size:0.75rem;">(이월: 0원)</div>
 						</div>
 					</div>
 					<div class="col-6 col-md-4">
-						<div class="card-custom p-3 card-realized-profit jpy"><span
-								class="text-danger profit-title-text"><i class="fas fa-yen-sign me-1"></i>엔화 실현
+						<div class="card-custom p-3 card-realized-profit jpy">
+							<span class="text-danger profit-title-text"><i class="fas fa-yen-sign me-1"></i>엔화 실현
 								손익</span>
 							<div class="profit-value-text text-danger" id="jpy-accumulated-profit">0원</div>
+							<div class="text-muted small mt-1 carry-over-subtext" id="jpy-carry-over-subtext"
+								style="font-size:0.75rem;">(이월: 0원)</div>
 						</div>
 					</div>
 				</div>
@@ -263,8 +275,24 @@
 				<div class="card card-custom p-2 p-md-4 bg-white">
 					<div
 						class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3 border-bottom pb-3">
-						<h6 class="fw-bold m-0 fs-6 text-secondary"><i class="fas fa-history me-1"></i>실현 손익 이력</h6>
+						<div class="d-flex align-items-center gap-2">
+							<h6 class="fw-bold m-0 fs-6 text-secondary"><i class="fas fa-history me-1"></i>실현 손익 이력</h6>
+						</div>
 						<div class="d-flex flex-wrap align-items-center gap-2">
+							<!-- 상시 노출 정리 액션 버튼 그룹 -->
+							<div class="btn-group btn-group-sm" role="group">
+								<button type="button" class="btn btn-outline-danger px-2 fw-bold"
+									onclick="batchCleanSoldHistory(false)" title="선택한 내역을 이월 처리하거나 삭제">
+									<i class="fas fa-check-square me-1"></i><span id="btn-label-selected-clean">선택 내역
+										정리</span>
+								</button>
+								<button type="button" class="btn btn-outline-danger px-2"
+									onclick="batchCleanSoldHistory(true)" title="모든 실현 손익 내역 일괄 정리">
+									전체 일괄 정리
+								</button>
+							</div>
+
+							<!-- 통화 필터 -->
 							<div class="btn-group btn-group-sm" role="group">
 								<input type="radio" class="btn-check" name="soldFilter" id="filter-all" checked
 									onchange="changeSoldFilter('all')">
@@ -276,6 +304,8 @@
 									onchange="changeSoldFilter('엔화')">
 								<label class="btn btn-outline-danger px-3" for="filter-jpy">💴 엔화</label>
 							</div>
+
+							<!-- 페이지 크기 -->
 							<div class="d-flex align-items-center gap-1">
 								<select class="form-select form-select-sm" id="soldPageSize" style="width: 105px;"
 									onchange="changeSoldPageSize()">
@@ -293,18 +323,22 @@
 						<table class="table table-hover align-middle text-nowrap m-0" style="font-size:0.85rem;">
 							<thead class="table-light">
 								<tr>
-									<th class="text-center" style="width: 50px;">No</th>
+									<th class="text-center" style="width: 40px;">
+										<input type="checkbox" class="form-check-input" id="check-all-sold"
+											onchange="toggleSelectAllSold(this.checked)" title="현재 페이지 전체 선택">
+									</th>
+									<th class="text-center" style="width: 45px;">No</th>
 									<th class="text-center" style="width: 100px;">계좌</th>
-									<th class="text-center" style="width: 90px;">구분</th>
-									<th class="text-center" style="width: 155px;">매수일자</th>
+									<th class="text-center" style="width: 85px;">구분</th>
+									<th class="text-center" style="width: 145px;">매수일자</th>
 									<th class="text-end">매수환율(₩)</th>
 									<th class="text-end">외화금액</th>
 									<th class="text-end">매수금(₩)</th>
-									<th class="text-center" style="width: 155px;">매도일자</th>
+									<th class="text-center" style="width: 145px;">매도일자</th>
 									<th class="text-end">매도환율(₩)</th>
 									<th class="text-end">정산금액(₩)</th>
 									<th class="text-end">확정손익(₩)</th>
-									<th class="text-center" style="width: 90px;">관리</th>
+									<th class="text-center" style="width: 85px;">관리</th>
 								</tr>
 							</thead>
 							<tbody id="sold-table-body"></tbody>

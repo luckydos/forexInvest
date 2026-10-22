@@ -254,6 +254,10 @@ body {
 	margin-top: 6px;
 }
 
+.carry-over-subtext {
+	letter-spacing: -0.02em;
+}
+
 /* ================== 투자포지션 뱃지 레이아웃 규격 통일 ================== */
 /* 1) 대기 상태 */
 .badge-status-hold {
@@ -338,6 +342,11 @@ body {
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;
+}
+
+/* 체크박스 전용 스타일 */
+.form-check-input {
+	cursor: pointer;
 }
 
 /* 모바일 카드 스타일 */
