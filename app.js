@@ -377,14 +377,14 @@ function renderCurrencySection(type, currencyData) {
 				profitRateText = (currentProfit >= 0 ? '+' : '') + profitRate + '%';
 
 				if (isLocked) {
-					// 🔒 타 상품 운용 중: 매도 불가 잠금 뱃지 노출
-					positionActionHtml = `<span class="shadow-sm" style="height: 28px; padding: 0 10px; font-size: 0.78rem; font-weight: 700; border-radius: 30px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background-color: #f3f0ff; color: #6f42c1; border: 1px solid #d0bfff;"><i class="fas fa-lock" style="font-size:0.75rem;"></i>${safeProduct} 운용중</span>`;
+					// 🔒 타 상품 운용 중
+					positionActionHtml = `<span class="badge-status-locked shadow-sm"><i class="fas fa-lock" style="font-size:0.75rem;"></i><span>${safeProduct} 운용중</span></span>`;
 				} else if (isProfit) {
-					// 현금 & 익절 가능: 팔기 버튼 활성화
-					positionActionHtml = `<button type="button" class="btn-position-sell-action" onclick="executeSale('${type}', '${item.id}', ${current})">🔥 +${profitRate}% 팔기 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
+					// 💰 익절 실행 액션 버튼
+					positionActionHtml = `<button type="button" class="btn-position-sell-action shadow-sm" onclick="executeSale('${type}', '${item.id}', ${current})"><i class="fas fa-coins" style="font-size:0.8rem;"></i>익절 실행 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
-					// 현금 & 보유 중
-					positionActionHtml = `<span class="badge-status-hold">⏳ ${profitRate}% 보유 중</span>`;
+					// ⏳ 익절 대기 (또는 반등 대기)
+					positionActionHtml = `<span class="badge-status-hold shadow-sm"><i class="fas fa-hourglass-half" style="font-size:0.75rem;"></i>익절 대기</span>`;
 				}
 			}
 
