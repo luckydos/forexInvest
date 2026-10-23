@@ -243,9 +243,11 @@
 							<div class="d-flex justify-content-between align-items-center">
 								<span class="text-success profit-title-text"><i class="fas fa-coins me-1"></i>전체 실현
 									손익</span>
-								<button type="button" class="btn btn-outline-secondary btn-sm py-0 px-2"
-									style="font-size:0.75rem;" onclick="openCarryOverEditModal()"
-									title="이월 누적 손익 수동 관리"><i class="fas fa-cog me-1"></i>이월 관리</button>
+								<!-- 버튼 크기 및 패딩 개선 (시인성 및 모바일 터치감 향상) -->
+								<button type="button" class="btn btn-outline-secondary btn-sm py-1 px-2.5 fw-bold"
+									style="font-size:0.8rem;" onclick="openCarryOverEditModal()" title="이월 누적 손익 수동 관리">
+									<i class="fas fa-cog me-1"></i>이월 관리
+								</button>
 							</div>
 							<div class="profit-value-text text-success" id="total-accumulated-profit">0원</div>
 							<div class="text-muted small mt-1 carry-over-subtext" id="total-carry-over-subtext"

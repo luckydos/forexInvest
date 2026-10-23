@@ -788,15 +788,15 @@ window.deleteSingleHistoryRecord = async function (docId) {
 	await executeCleanProcess([item], "실현 손익 1건 정리");
 };
 
-// ✏️ 이월 누적 손익 수동 관리 모달
+// ✏️ 이월 손익 수정 모달 (모바일 최적화 및 간결화)
 window.openCarryOverEditModal = async function () {
 	const curUsd = Number(globalData.profitSummary?.carryOverUsdProfit) || 0;
 	const curJpy = Number(globalData.profitSummary?.carryOverJpyProfit) || 0;
 
 	const { value: formValues } = await Swal.fire({
-		title: '이월 누적 손익 수동 관리',
+		title: '이월 손익 수정',
 		html: `
-			<div class="text-start small text-muted mb-3">과거 결산 및 정리로 누적된 이월 손익을 직접 보정합니다.</div>
+			<div class="text-start small text-muted mb-3">정리된 누적 이월금을 수정합니다.</div>
 			<div class="text-start mb-2">
 				<label class="form-label small fw-bold text-dark mb-1">💵 달러 이월 손익(₩)</label>
 				<input type="number" id="swal-carry-usd" class="form-control fw-bold" value="${curUsd}" step="1">
