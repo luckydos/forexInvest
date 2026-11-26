@@ -404,7 +404,7 @@ function renderCurrencySection(type, currencyData) {
 				} else if (isProfit) {
 					positionActionHtml = `<button type="button" class="btn-position-sell-action shadow-sm" onclick="executeSale('${type}', '${item.id}', ${current})"><i class="fas fa-coins" style="font-size:0.8rem;"></i>익절 실행 <i class="fas fa-chevron-right" style="font-size:0.7rem;"></i></button>`;
 				} else {
-					positionActionHtml = `<span class="badge-status-hold shadow-sm"><i class="fas fa-hourglass-half" style="font-size:0.75rem;"></i>익절 대기</span>`;
+					positionActionHtml = `<button type="button" class="badge-status-hold shadow-sm" onclick="confirmHoldSale('${type}', '${item.id}', ${current})" title="현재 평가손익은 마이너스이지만 실제 체결가로 매도 처리"><i class="fas fa-hourglass-half" style="font-size:0.75rem;"></i>익절 대기</button>`;
 				}
 			}
 
@@ -867,6 +867,24 @@ function renderPaginationNav(totalPages) {
 
 	navEl.appendChild(ul);
 }
+
+// ⚠️ 익절 대기 상태에서 수동 매도 진행 시 경고 확인
+window.confirmHoldSale = async function (type, docId, defaultPrice) {
+	const result = await Swal.fire({
+		title: '익절 대기 상태 매도 확인',
+		html: '현재 조회된 환율 기준으로는 <b>평가손익이 마이너스(또는 0원)</b>입니다.<br><br>실제 매도 체결 환율을 직접 입력하여 정산을 진행하시겠습니까?',
+		icon: 'warning',
+		showCancelButton: true,
+		confirmButtonColor: '#0d6efd',
+		cancelButtonColor: '#6c757d',
+		confirmButtonText: '네, 매도 진행',
+		cancelButtonText: '취소'
+	});
+
+	if (result.isConfirmed) {
+		window.executeSale(type, docId, defaultPrice);
+	}
+};
 
 // 💰 매도 익절 확정 실행
 window.executeSale = async function (type, docId, defaultPrice) {

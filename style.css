@@ -259,7 +259,7 @@ body {
 }
 
 /* ================== 투자포지션 뱃지 레이아웃 규격 통일 ================== */
-/* 1) 대기 상태 */
+/* 1) 대기 상태 (클릭 가능 버튼화) */
 .badge-status-hold {
 	height: 30px;
 	min-width: 108px;
@@ -277,6 +277,15 @@ body {
 	background-color: #f1f3f5;
 	color: #495057;
 	border: 1px solid #dee2e6;
+	cursor: pointer;
+	transition: all 0.15s ease-in-out;
+}
+
+.badge-status-hold:hover,
+.badge-status-hold:active {
+	background-color: #e9ecef;
+	color: #212529;
+	border-color: #adb5bd;
 }
 
 /* 2) 익절 실행 버튼 */
